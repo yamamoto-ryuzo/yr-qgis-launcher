@@ -16,18 +16,18 @@
 | admin    |          | Administrator |
 
 ［バージョン選択］
-　　インストール版：拡張子qgsと関連付けされているQGIS  
-　　ポータブル版：congiで指定されているQGIS  
+　　インストール版：拡張子qgsと関連付けされているQGIS
+　　ポータブル版：congiで指定されているQGIS
 
 #### 【ProjectFile.config】
 
 　　VirtualDrive=Q:
-　　により仮想ドライブを指定してください。  
-　　その他の項目は任意です。  
+　　により仮想ドライブを指定してください。
+　　その他の項目は任意です。
 
 ## ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。
 
-[システム一式 ver3.38.1](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)  
+[システム一式 ver3.38.1](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)
 
 ## QGISランチャーコンセプト
 
@@ -40,13 +40,13 @@
 ## QGISランチャー
 
  ProjectFile.exe を起動してください。
- /ProjectFiles/ProjectFile.qgs が起動します。  
- 'shift'キーを押しながら起動すると、プロファイルをリセットできます。  
+ /ProjectFiles/ProjectFile.qgs が起動します。
+ 'shift'キーを押しながら起動すると、プロファイルをリセットできます。
 
-EXEはファイル名を変えることで、同じ名称のqgsファイルを起動します。  
- 例）test.exe　に　変更すると　test.qgs が起動します  
+EXEはファイル名を変えることで、同じ名称のqgsファイルを起動します。
+ 例）test.exe　に　変更すると　test.qgs が起動します
 
- ※拡張子はLIZMAP連携のためQGSを利用しています。  
+ ※拡張子はLIZMAP連携のためQGSを利用しています。
 
 （フォルダー構成）
 　QGISポータブル版を私の趣味により統一環境として組込済のプラグインを含んでいます。
@@ -90,8 +90,8 @@ https://github.com/sourcepole/qgis-instantprint-plugin
 
 ### (保留中)
 
-公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。
-https://github.com/sourcepole/qgis-instantprint-plugin
+公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。  
+https://github.com/sourcepole/qgis-instantprint-plugin  
 
 ### (保留中)
 
