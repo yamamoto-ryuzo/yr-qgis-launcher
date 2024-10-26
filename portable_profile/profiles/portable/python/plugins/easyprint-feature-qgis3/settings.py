@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*-
+
+ZUKAKU_X_MARGIN = 100
+ZUKAKU_Y_MARGIN = 100
+
+ZUKAKU_FILE_NAME = "zukaku.shp"
+ZUKAKU_COLUMN_NAME = "ID"

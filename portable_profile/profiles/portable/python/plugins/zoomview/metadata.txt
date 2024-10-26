@@ -1,0 +1,24 @@
+[general]
+name=ZoomView
+description=Adds a dock panel showing a magnification of the map canvas around a selected point. Map tools are still usable in the central map canvas and also in the ZoomView.
+version=1.1.2
+about=See the project homepage for a detailed overview and usage instructions.
+qgisMinimumVersion=3.0
+qgisMaximumVersion=4.0
+author=Andreas Janz
+email=andreas.janz@geo.hu-berlin.de
+tags=zoom, magnification, map view, point selection
+icon=icon.svg
+experimental=False
+homepage=https://zoomview.readthedocs.io
+tracker=https://bitbucket.org/janzandr/zoomview/issues
+repository=https://bitbucket.org/janzandr/zoomview
+changelog=1.1.2
+    - Resolves issue #9.
+    1.1.1
+    - Resolves issue #5, #6 and #7.
+    - Resolves issue with debug messages.
+    1.1
+    - Added pixel-wise navigation with AWSD keys.
+    1.0
+    - Initial upload.

@@ -1,0 +1,17 @@
+[general]
+name=(GEO)easyprint
+qgisMinimumVersion=3.00
+qgisMaximumVersion=3.99
+description=デフォルトの印刷の操作が複雑なので、簡略化させた印刷プラグイン
+version=0.6.1
+
+icon=easyprint.png
+
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version
+deprecated=False
+
+# Author contact information
+author=okuda
+email=hoge@hoge.com

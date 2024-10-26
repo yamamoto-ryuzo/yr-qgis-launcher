@@ -1,0 +1,39 @@
+[general]
+name=Lizmap
+qgisMinimumVersion=3.16
+qgisMaximumVersion=3.99
+author=3Liz
+email=info@3liz.com
+description=Publish and share your QGIS maps on the Web via Lizmap Web Client, by 3liz.com
+about=With a few clicks, it's possible to publish and share your QGIS projects on the Web via Lizmap Web Client, by 3liz.com. QGIS Server is used in the background so all the symbology is kept. The edition forms in QGIS are also available. Demo : https://demo.lizmap.com and documentation : https://docs.lizmap.com and hosting solutions https://lizmap.com
+category=Web
+tags=online,server,web,webgis,webservice,webmapping,mobile,publication,wms,wfs,wps,internet,cloud
+
+homepage=https://docs.lizmap.com
+tracker=https://github.com/3liz/lizmap-plugin/issues
+repository=https://github.com/3liz/lizmap-plugin
+
+# Done automatically by qgis-plugin-ci
+version=4.3.24
+commitNumber=1
+commitSha1=a192baf2ad310db2d01fc9eceee88c62f602f957
+dateTime=2024-09-09T07:58:23Z
+changelog=
+ Version 4.3.24:
+ * Improve download of QGS project
+
+ Version 4.3.23:
+ * Fix regression form previous version about external WMS
+ * Improve download of QGS project
+
+ Version 4.3.22:
+ * New option to allow multiple ACL values within the same field for attribute filtering, for LWC 3.8.
+ * Minor code refactoring about WMS layers parsing
+
+
+# End of qgis-plugin-ci
+
+icon=resources/icons/icon.png
+experimental=False
+deprecated=False
+server=False
