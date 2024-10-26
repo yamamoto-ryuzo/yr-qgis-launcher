@@ -6,7 +6,7 @@
 
 #### 【auth.config】ファイルが存在しない場合は、認証が不要になります。
 
-［標準設定］`<BR>`
+［標準設定］
 
 | username | password | userrole      |
 | -------- | -------- | ------------- |
@@ -15,17 +15,21 @@
 | qgis     |          | Editor        |
 | admin    |          | Administrator |
 
-［バージョン選択］`<BR>`
-　　インストール版：拡張子qgsと関連付けされているQGIS `<BR>`
-　　ポータブル版：congiで指定されているQGIS `<BR>`
+［バージョン選択］
 
-#### 【ProjectFile.config】
+　　インストール版：拡張子qgsと関連付けされているQGIS
 
-　　VirtualDrive=Q:`<BR>`
-　　により仮想ドライブを指定してください。`<BR>`
-　　その他の項目は任意です。`<BR>`
+　　ポータブル版：congiで指定されているQGIS
 
-## ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。
+【ProjectFile.config】
+
+　　VirtualDrive=Q:
+
+　　により仮想ドライブを指定してください。
+
+　　その他の項目は任意です。
+
+ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。
 
 [システム一式 ver3.38.1](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)
 
@@ -37,41 +41,41 @@
   "userrole": "Viewer"　に対して、「レイヤーを読み取り」に設定
   ![image](https://github.com/user-attachments/assets/20c4a48d-7de1-49c4-9e45-f1da5e1fd8af)
 
-<br>
-
-
-<br>
-
-
-<br>
-
-
-<br>
-
-
 ## QGISランチャー
 
- ProjectFile.exe を起動してください。`<BR>`
- /ProjectFiles/ProjectFile.qgs が起動します。`<BR>`
- 'shift'キーを押しながら起動すると、プロファイルをリセットできます。`<BR>`
+ ProjectFile.exe を起動してください。
 
-EXEはファイル名を変えることで、同じ名称のqgsファイルを起動します。`<BR>`
- 例）test.exe　に　変更すると　test.qgs が起動します `<BR>`
+ /ProjectFiles/ProjectFile.qgs が起動します。
 
- ※拡張子はLIZMAP連携のためQGSを利用しています。`<BR>`
+ 'shift'キーを押しながら起動すると、プロファイルをリセットできます。
 
-（フォルダー構成）`<BR>`
-　QGISポータブル版を私の趣味により統一環境として組込済のプラグインを含んでいます。`<BR>`
-　WindowsのProjectFile.exeです。`<BR>`
-　/ルードフォルダ `<BR>`
-　　ProjectFile.exe ----------------　ランチャー本体 `<BR>`
-　　/QGIS各バージョン/qgis --------------- QGIS本体 `<BR>`
-　　/QGIS各バージョン/qgisconfig----------　各種共通設定ファイルを含んだコンフィグファイル `<BR>`
-　　/ProjectFiles-------------------　初期設定がされたプロジェクトファイルを保存するフォルダ `<BR>`
-　　/ProjectFiles/data----------　プロジェクトファイルで利用しているオープンデータを保存するフォルダ(Lizmap)`<BR>`
+EXEはファイル名を変えることで、同じ名称のqgsファイルを起動します。
 
-　英数字のみからなるフォルダに解凍してください。`<BR>`
-　日本語を含むフォルダはエラーになります。`<BR>`
+ 例）test.exe　に　変更すると　test.qgs が起動します
+
+ ※拡張子はLIZMAP連携のためQGSを利用しています。
+
+（フォルダー構成）
+
+　QGISポータブル版を私の趣味により統一環境として組込済のプラグインを含んでいます。
+
+　WindowsのProjectFile.exeです。
+
+　/ルードフォルダ
+　　ProjectFile.exe ----------------　ランチャー本体
+
+　　/QGIS各バージョン/qgis --------------- QGIS本体
+
+　　/QGIS各バージョン/qgisconfig----------　各種共通設定ファイルを含んだコンフィグファイル
+
+　　/ProjectFiles-------------------　初期設定がされたプロジェクトファイルを保存するフォルダ
+
+　　/ProjectFiles/data----------　プロジェクトファイルで利用しているオープンデータを保存するフォルダ(Lizmap)
+
+　英数字のみからなるフォルダに解凍してください。
+
+　日本語を含むフォルダはエラーになります。
+
 ![image](https://github.com/yamamoto-ryuzo/yr-qgis-portable-launcher2/assets/86514652/177ffbe3-654d-4d22-9f70-add09bcf0323)
 
 ## 統一環境として組込済のプラグイン
@@ -102,10 +106,11 @@ https://github.com/sourcepole/qgis-instantprint-plugin
 
 ### (保留中)
 
-公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。`<BR>`
-https://github.com/sourcepole/qgis-instantprint-plugin `<BR>`
+公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。
 
-### (保留中)
+https://github.com/sourcepole/qgis-instantprint-plugin
+
+(保留中)
 
 https://github.com/Orbitalnet-incs/meshprint
 
