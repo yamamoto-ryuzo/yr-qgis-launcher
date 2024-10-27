@@ -16,7 +16,7 @@
 
 ［バージョン選択］   
 　　インストール版：拡張子qgsと関連付けされているQGIS  
-　　ポータブル版：congiで指定されているQGIS  
+　　ポータブル版：configで指定されているQGIS  
 
 【ProjectFile.config】  
 　　VirtualDrive=Q:  
