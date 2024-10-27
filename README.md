@@ -75,7 +75,8 @@ https://github.com/sourcepole/qgis-instantprint-plugin
 公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。
 https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint  
 ### 簡易印刷
-公開予定
+公式プラグインではないため、下記リポジトリからダウンロードください。  
+https://github.com/yamamoto-ryuzo/yr-qgis-easyprint
 ### (保留中)
 https://github.com/Orbitalnet-incs/meshprint  
 ## レイヤー管理
@@ -109,7 +110,5 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-### (保留中)
-https://github.com/Orbitalnet-incs/SearchZmap  
 #### ・補足事項
     .BATの改行コードをWindows用にするため　.gitattributes　を設置  
