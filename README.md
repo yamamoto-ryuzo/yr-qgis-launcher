@@ -61,106 +61,55 @@
 ![image](https://github.com/yamamoto-ryuzo/yr-qgis-portable-launcher2/assets/86514652/177ffbe3-654d-4d22-9f70-add09bcf0323)
 
 ## 統一環境として組込済のプラグイン
-
 ### MMQGIS
-
 [https://plugins.qgis.org/plugins/mmqgis/#plugin-about ](https://michaelminn.com/linux/mmqgis/)
-
 ### 検索
-
 ### Search Layers
-
-https://github.com/NationalSecurityAgency/qgis-searchlayers-plugin
-
+https://github.com/NationalSecurityAgency/qgis-searchlayers-plugin  
 ### GEO_search
-
-https://github.com/yamamoto-ryuzo/GEO-search-plugin
-
+https://github.com/yamamoto-ryuzo/GEO-search-plugin  
 ## 印刷
-
 ### Instant Print
-
-https://github.com/sourcepole/qgis-instantprint-plugin
-
+https://github.com/sourcepole/qgis-instantprint-plugin  
+### easyinstantprint  
+公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。
+https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint  
 ### 簡易印刷
-
 公開予定
-
 ### (保留中)
-
-公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。  
-https://github.com/sourcepole/qgis-instantprint-plugin
-
-(保留中)
 https://github.com/Orbitalnet-incs/meshprint  
-
 ## レイヤー管理
-
 ### Layers menu from project
-
-https://github.com/xcaeag/MenuFromProject-Qgis-Plugin
-
+https://github.com/xcaeag/MenuFromProject-Qgis-Plugin  
 ## 画面
-
 ### ZoomView
-
-https://bitbucket.org/janzandr/zoomview/src/master/
-
+https://bitbucket.org/janzandr/zoomview/src/master/  
 ## WEB連携
-
 ### Street View
-
-リポジトリなし
-
+リポジトリなし  
 ### Lizmap
-
-https://github.com/3liz/lizmap-plugin
-
+https://github.com/3liz/lizmap-plugin  
 ### qgis2web
-
-https://github.com/qgis2web/qgis2web
-
+https://github.com/qgis2web/qgis2web  
 ### Qgis2threejs
-
-https://github.com/minorua/Qgis2threejs
-
+https://github.com/minorua/Qgis2threejs  
 ## データ連携
-
 ### PLATEAU QGIS Plugin
-
-https://github.com/Project-PLATEAU/plateau-qgis-plugin
-
+https://github.com/Project-PLATEAU/plateau-qgis-plugin  
 ### ExcelSync
-
-https://github.com/opengisch/qgis_excel_sync
-
+https://github.com/opengisch/qgis_excel_sync  
 ### Spreadsheet Layers
-
-https://github.com/camptocamp/QGIS-SpreadSheetLayers
-
+https://github.com/camptocamp/QGIS-SpreadSheetLayers  
 ### MOJXML Loader
-
-https://github.com/MIERUNE/qgis-mojxml-plugin
-
+https://github.com/MIERUNE/qgis-mojxml-plugin  
 ## その他
-
 ### Select Themes
-
-https://github.com/Amphibitus/selectThemes
-
+https://github.com/Amphibitus/selectThemes  
 ### QGIS-legendView
-
-https://github.com/yamamoto-ryuzo/QGIS-legendView
-
+https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
-
-https://github.com/Orbitalnet-incs/EasyAttributeFilter
-
+https://github.com/Orbitalnet-incs/EasyAttributeFilter  
 ### (保留中)
-
-https://github.com/Orbitalnet-incs/SearchZmap
-　　
-
+https://github.com/Orbitalnet-incs/SearchZmap  
 #### ・補足事項
-
-    .BATの改行コードをWindows用にするため　.gitattributes　を設置
+    .BATの改行コードをWindows用にするため　.gitattributes　を設置  
