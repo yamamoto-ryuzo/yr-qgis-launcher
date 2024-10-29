@@ -25,7 +25,7 @@
 
   ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。  
   [システム　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/releases/tag/v1.0.0)  
-  [システム　一式 ポータブル版ver3.38.1含む](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)  
+  [システム　一式 ポータブル版QGISver3.38.1含む](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)  
 
 ## QGISランチャーコンセプト
 
