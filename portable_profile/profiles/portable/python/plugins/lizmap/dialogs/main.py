@@ -1017,6 +1017,7 @@ class LizmapDialog(QDialog, FORM_CLASS):
             self.group_local_layers,
             self.group_project_status,
             self.group_links,
+            self.group_box_max_scale_zoom,
         )
         for widget in q_group_box:
             widget.setStyleSheet(COMPLETE_STYLE_SHEET)
@@ -1168,17 +1169,17 @@ class LizmapDialog(QDialog, FORM_CLASS):
         """ Export the list of safeguards to markdown. """
         text = '<details>\n'
         text += '<summary>List of safeguards :</summary>\n'
-        text += '<br/>\n\n'
-        text += '* Mode : {}\n'.format('normal' if self.radio_normal.isChecked() else 'safe')
-        text += '* Allow parent folder : {}\n'.format('yes' if self.radio_allow_parent_folder.isChecked() else 'no')
+        text += '<br/>\n'
+        text += '* Mode : {}<br/>\n'.format('normal' if self.radio_normal.isChecked() else 'safe')
+        text += '* Allow parent folder : {}<br/>\n'.format('yes' if self.radio_allow_parent_folder.isChecked() else 'no')
         if self.radio_allow_parent_folder.isChecked():
-            text += '* Number of parent : {} folder(s)\n'.format(self.safe_number_parent.value())
-        text += '* Prevent other drive : {}\n'.format('yes' if self.safe_other_drive.isChecked() else 'no')
-        text += '* Prevent PG service : {}\n'.format('yes' if self.safe_pg_service.isChecked() else 'no')
-        text += '* Prevent PG Auth DB : {}\n'.format('yes' if self.safe_pg_auth_db.isChecked() else 'no')
-        text += '* Force PG user&pass : {}\n'.format('yes' if self.safe_pg_user_password.isChecked() else 'no')
-        text += '* Prevent ECW : {}\n'.format('yes' if self.safe_ecw.isChecked() else 'no')
-        text += '</details>'
+            text += '* Number of parent : {} folder(s)<br/>\n'.format(self.safe_number_parent.value())
+        text += '* Prevent other drive : {}<br/>\n'.format('yes' if self.safe_other_drive.isChecked() else 'no')
+        text += '* Prevent PG service : {}<br/>\n'.format('yes' if self.safe_pg_service.isChecked() else 'no')
+        text += '* Prevent PG Auth DB : {}<br/>\n'.format('yes' if self.safe_pg_auth_db.isChecked() else 'no')
+        text += '* Force PG user&pass : {}<br/>\n'.format('yes' if self.safe_pg_user_password.isChecked() else 'no')
+        text += '* Prevent ECW : {}<br/>\n'.format('yes' if self.safe_ecw.isChecked() else 'no')
+        text += '</details>\n'
         return text
 
     def save_settings(self):

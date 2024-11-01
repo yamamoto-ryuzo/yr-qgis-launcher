@@ -1,20 +1,33 @@
 [
     {
+        "branch": "3.10",
+        "changelog": {},
+        "first_release_date": "",
+        "latest_release_date": "",
+        "latest_release_version": "",
+        "qgis_max_version_recommended": 39900,
+        "qgis_min_version_recommended": 33400,
+        "status": "dev"
+    },
+    {
         "branch": "3.9",
         "changelog": {},
         "first_release_date": "",
         "latest_release_date": "",
-        "latest_release_version": "3.9.0",
+        "latest_release_version": "",
         "qgis_max_version_recommended": 39900,
-        "qgis_min_version_recommended": 32800,
+        "qgis_min_version_recommended": 33400,
         "status": "dev"
     },
     {
         "branch": "3.8",
-        "changelog": {},
+        "changelog": {
+            "en": "https://www.3liz.com/en/news/lizmap-web-client-3-8.html",
+            "fr": "https://www.3liz.com/news/lizmap-web-client-3-8.html"
+        },
         "first_release_date": "2024-09-02",
-        "latest_release_date": "2024-09-18",
-        "latest_release_version": "3.8.1",
+        "latest_release_date": "2024-10-01",
+        "latest_release_version": "3.8.2",
         "qgis_max_version_recommended": 39900,
         "qgis_min_version_recommended": 32800,
         "status": "stable"
@@ -26,8 +39,8 @@
             "fr": "https://www.3liz.com/news/lizmap-web-client-3-7.html"
         },
         "first_release_date": "2023-12-13",
-        "latest_release_date": "2024-08-01",
-        "latest_release_version": "3.7.10",
+        "latest_release_date": "2024-10-02",
+        "latest_release_version": "3.7.11",
         "qgis_max_version_recommended": 39900,
         "qgis_min_version_recommended": 32200,
         "status": "stable"
@@ -43,7 +56,7 @@
         "latest_release_version": "3.6.14",
         "qgis_max_version_recommended": 39900,
         "qgis_min_version_recommended": 31000,
-        "status": "security_bugfix_only"
+        "status": "retired"
     },
     {
         "branch": "3.5",

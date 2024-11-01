@@ -14,21 +14,21 @@ tracker=https://github.com/3liz/lizmap-plugin/issues
 repository=https://github.com/3liz/lizmap-plugin
 
 # Done automatically by qgis-plugin-ci
-version=4.4.0
+version=4.4.4
 commitNumber=1
-commitSha1=db20f67c8b8f9df734fffce5c9c3f58f20f124bc
-dateTime=2024-09-17T14:30:42Z
+commitSha1=92ff01ba69cfdc4ef42294b1a025ad1513a1c93b
+dateTime=2024-10-29T14:12:33Z
 changelog=
- Version 4.4.0:
- * Do not ask to override a previous CFG when saving a QGS file to a new destination
- * Raise QGIS minimum version to 3.22
+ Version 4.4.4:
+ * Add new settings about maximum scales when zooming on points, lines or polygons, for Lizmap Web Client 3.9
+ * Temporary disable the "duplicated layer with different filters check"
 
- Version 4.3.24:
- * Improve download of QGS project
+ Version 4.4.3:
+ * Improve layout when copy/pasting versions
+ * Helper function for the Dynamic layer plugin
 
- Version 4.3.23:
- * Fix regression form previous version about external WMS
- * Improve download of QGS project
+ Version 4.4.2:
+ * Export the list of modules when requesting some support
 
 
 # End of qgis-plugin-ci

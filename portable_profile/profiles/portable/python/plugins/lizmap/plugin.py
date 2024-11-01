@@ -17,7 +17,7 @@ from shutil import copyfile
 from typing import Dict, List, Optional, Tuple, Union
 
 from pyplugin_installer.version_compare import compareVersions
-from qgis.core import (
+from qgis.core import (  # QgsIconUtils,
     Qgis,
     QgsApplication,
     QgsAuthMethodConfig,
@@ -25,7 +25,6 @@ from qgis.core import (
     QgsEditFormConfig,
     QgsExpression,
     QgsFileDownloader,
-    QgsIconUtils,
     QgsLayerTree,
     QgsLayerTreeGroup,
     QgsMapLayer,
@@ -139,7 +138,7 @@ from lizmap.forms.time_manager_edition import TimeManagerEditionDialog
 from lizmap.forms.tooltip_edition import ToolTipEditionDialog
 from lizmap.lizmap_api.config import LizmapConfig
 from lizmap.ogc_project_validity import OgcProjectValidity
-from lizmap.project_checker_tools import (
+from lizmap.project_checker_tools import (  # duplicated_layer_with_filter_legend,
     ALLOW_PARENT_FOLDER,
     FORCE_LOCAL_FOLDER,
     FORCE_PG_USER_PASS,
@@ -150,7 +149,6 @@ from lizmap.project_checker_tools import (
     count_legend_items,
     duplicated_label_legend,
     duplicated_layer_name_or_group,
-    duplicated_layer_with_filter_legend,
     duplicated_rule_key_legend,
     project_invalid_pk,
     project_safeguards_checks,
@@ -227,6 +225,7 @@ class Lizmap:
 
         # Must only be used in tests
         # In production, version is coming from the UI, according to the current server selected
+        # In production, this variable must be None
         self._version = lwc_version
 
         # Keep it for a few months
@@ -456,6 +455,11 @@ class Lizmap:
             # Permalink, will be backported to 3.7, but wait a little before adding it to the 3.7 list
             self.dlg.automatic_permalink,
         ]
+        self.lwc_versions[LwcVersions.Lizmap_3_9] = [
+            self.dlg.group_box_max_scale_zoom,
+        ]
+        self.lwc_versions[LwcVersions.Lizmap_3_10] = [
+        ]
 
         self.lizmap_cloud = [
             self.dlg.label_lizmap_search_grant,
@@ -468,6 +472,8 @@ class Lizmap:
         # self.global_options['mapScales']['widget'] = self.dlg.list_map_scales
         # self.global_options['minScale']['widget'] = self.dlg.minimum_scale
         # self.global_options['maxScale']['widget'] = self.dlg.maximum_scale
+        self.global_options['max_scale_points']['widget'] = self.dlg.max_scale_points
+        self.global_options['max_scale_lines_polygons']['widget'] = self.dlg.max_scale_lines_polygons
         self.global_options['hide_numeric_scale_value']['widget'] = self.dlg.hide_scale_value
         self.global_options['acl']['widget'] = self.dlg.inAcl
         self.global_options['initialExtent']['widget'] = self.dlg.widget_initial_extent
@@ -1858,6 +1864,16 @@ class Lizmap:
                     if key in json_options:
                         item['widget'].setChecked(to_bool(json_options[key]))
 
+                if item['wType'] == 'scale':
+                    item['widget'].setShowCurrentScaleButton(True)
+                    item['widget'].setMapCanvas(self.iface.mapCanvas())
+                    item['widget'].setAllowNull(False)
+                    value = json_options.get(key)
+                    if value:
+                        item['widget'].setScale(value)
+                    else:
+                        item['widget'].setScale(item['default'])
+
                 if item['wType'] in ('text', 'textarea'):
                     if isinstance(item['default'], (list, tuple)):
                         item['widget'].setText(", ".join(map(str, item['default'])))
@@ -2538,7 +2554,6 @@ class Lizmap:
                 self.dlg.group_layer_tree_options.setEnabled(False)
                 self.dlg.checkbox_popup.setEnabled(False)
                 self.dlg.frame_layer_popup.setEnabled(False)
-                self.dlg.group_layer_embedded.setEnabled(False)
 
             elif self._current_item_predefined_group() in (
                     PredefinedGroup.Overview.value,
@@ -3014,7 +3029,10 @@ class Lizmap:
 
         root = config.invisibleRootContainer()
         relation_manager = self.project.relationManager()
-        html_content = Tooltip.create_popup_node_item_from_form(layer, root, 0, [], '', relation_manager)
+        html_content = Tooltip.create_popup_node_item_from_form(
+            layer, root, 0, [], '', relation_manager,
+            bootstrap_5=self.current_lwc_version() >= LwcVersions.Lizmap_3_9,
+        )
         html_content = Tooltip.create_popup(html_content)
         html_content += Tooltip.css()
         self._set_maptip(layer, html_content)
@@ -3381,52 +3399,53 @@ class Lizmap:
                             lizmap_cloud=lizmap_cloud,
                         )
 
-            if lwc_version >= LwcVersions.Lizmap_3_7:
-                results = duplicated_layer_with_filter_legend(self.project)
-                if results:
-                    self.dlg.log_panel.append(checks.DuplicatedLayerFilterLegend.title, Html.H2)
-                    self.dlg.log_panel.start_table()
-                    self.dlg.log_panel.append(
-                        "<tr><th>{}</th><th>{}</th><th>{}</th></tr>".format(
-                            tr('Datasource'), tr('Filters'), tr('Layers'))
-                    )
-                    for i, result in enumerate(results):
-                        for uri, filters in result.items():
-                            self.dlg.log_panel.add_row(i)
-                            self.dlg.log_panel.append(uri, Html.Td)
-
-                            # Icon
-                            for k, v in filters.items():
-                                if k == "_wkb_type":
-                                    icon = QgsIconUtils.iconForWkbType(v)
-                                    break
-                            else:
-                                icon = QIcon(':/images/themes/default/algorithms/mAlgorithmMergeLayers.svg')
-
-                            del filters["_wkb_type"]
-
-                            uri_filter = '<ul>' + ''.join([f"<li>{k}</li>" for k in filters.keys()]) + '</ul>'
-                            self.dlg.log_panel.append(uri_filter, Html.Td)
-
-                            layer_names = '<ul>' + ''.join([f"<li>{k}</li>" for k in filters.values()]) + '</ul>'
-                            self.dlg.log_panel.append(layer_names, Html.Td)
-
-                            self.dlg.log_panel.end_row()
-
-                            self.dlg.check_results.add_error(
-                                Error(
-                                    uri,
-                                    checks.DuplicatedLayerFilterLegend,
-                                ),
-                                icon=icon,
-                            )
-
-                    self.dlg.log_panel.end_table()
-
-                    self.dlg.log_panel.append(tr(
-                        'Checkboxes are supported natively in the legend. Using filters for the same '
-                        'datasource are highly discouraged.'
-                    ), style=Html.P)
+            # if lwc_version >= LwcVersions.Lizmap_3_7:
+            #     # Temporary disabled, I think there are some valid use cases for this for now.
+            #     results = duplicated_layer_with_filter_legend(self.project)
+            #     if results:
+            #         self.dlg.log_panel.append(checks.DuplicatedLayerFilterLegend.title, Html.H2)
+            #         self.dlg.log_panel.start_table()
+            #         self.dlg.log_panel.append(
+            #             "<tr><th>{}</th><th>{}</th><th>{}</th></tr>".format(
+            #                 tr('Datasource'), tr('Filters'), tr('Layers'))
+            #         )
+            #         for i, result in enumerate(results):
+            #             for uri, filters in result.items():
+            #                 self.dlg.log_panel.add_row(i)
+            #                 self.dlg.log_panel.append(uri, Html.Td)
+            #
+            #                 # Icon
+            #                 for k, v in filters.items():
+            #                     if k == "_wkb_type":
+            #                         icon = QgsIconUtils.iconForWkbType(v)
+            #                         break
+            #                 else:
+            #                     icon = QIcon(':/images/themes/default/algorithms/mAlgorithmMergeLayers.svg')
+            #
+            #                 del filters["_wkb_type"]
+            #
+            #                 uri_filter = '<ul>' + ''.join([f"<li>{k}</li>" for k in filters.keys()]) + '</ul>'
+            #                 self.dlg.log_panel.append(uri_filter, Html.Td)
+            #
+            #                 layer_names = '<ul>' + ''.join([f"<li>{k}</li>" for k in filters.values()]) + '</ul>'
+            #                 self.dlg.log_panel.append(layer_names, Html.Td)
+            #
+            #                 self.dlg.log_panel.end_row()
+            #
+            #                 self.dlg.check_results.add_error(
+            #                     Error(
+            #                         uri,
+            #                         checks.DuplicatedLayerFilterLegend,
+            #                     ),
+            #                     icon=icon,
+            #                 )
+            #
+            #         self.dlg.log_panel.end_table()
+            #
+            #         self.dlg.log_panel.append(tr(
+            #             'Checkboxes are supported natively in the legend. Using filters for the same '
+            #             'datasource are highly discouraged.'
+            #         ), style=Html.P)
 
         results = simplify_provider_side(self.project)
         for layer in results:
@@ -3589,7 +3608,18 @@ class Lizmap:
             target_status = ReleaseStatus.Unknown
 
         if is_lizmap_cloud(server_metadata):
-            if self.dlg.current_server_info(ServerComboData.LwcBranchStatus.value) == ReleaseStatus.Retired:
+            eol = (ReleaseStatus.Retired, ReleaseStatus.SecurityBugfixOnly)
+            if self.dlg.current_server_info(ServerComboData.LwcBranchStatus.value) in eol:
+                if self.dlg.current_server_info(ServerComboData.LwcBranchStatus.value) == ReleaseStatus.Retired:
+                    msg = tr(
+                        'This version of Lizmap Web Client is now <strong>not supported anymore</strong>.'
+                    )
+                else:
+                    msg = tr(
+                        'This version of Lizmap Web Client is <strong>nearly not supported anymore</strong>. '
+                        'It is in <strong>security bugfix mode only</strong>, it means only critical bugfix are fixed '
+                        'and soon the branch will be declared <strong>not maintained</strong>.'
+                    )
                 QMessageBox.warning(
                     self.dlg,
                     CLOUD_NAME,
@@ -3601,11 +3631,14 @@ class Lizmap:
                         lwc_version=lwc_version.value,
                     )
                     + "<br><br>"
+                    + msg
+                    + "<br><br>"
+                    + "<strong>"
                     + tr(
-                        'This version of Lizmap Web Client has now reached its end of life and is not supported '
-                        'anymore. Please visit your administration panel in your web browser, in the dashboard, and '
+                        'Please visit your administration panel in your web browser, in the dashboard, and '
                         'ask for the update.'
                     )
+                    + "</strong>"
                     + "<br><br>"
                     + tr(
                         'You might have some old project which need an update from you. The list is written on the '
@@ -3698,6 +3731,12 @@ class Lizmap:
                 # Get field value depending on widget type
                 if item['wType'] == 'text':
                     input_value = item['widget'].text().strip(' \t')
+
+                if item['wType'] == 'scale':
+                    input_value = item['widget'].scale()
+                    if input_value == item['default']:
+                        # Only save if different from the default value
+                        continue
 
                 if item['wType'] == 'wysiwyg':
                     input_value = item['widget'].html_content().strip(' \t')
