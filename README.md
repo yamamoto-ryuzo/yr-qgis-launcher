@@ -110,7 +110,9 @@ https://github.com/MIERUNE/qgis-mojxml-plugin
 ### Plugin Builder 3  
 https://github.com/g-sherman/Qgis-Plugin-Builder  
 ### Plugin Reloader
-https://github.com/borysiasty/plugin_reloader
+https://github.com/borysiasty/plugin_reloader  
+### debugvs  
+https://github.com/lmotta/debug_vs_plugin  
 ## その他
 ### Select Themes
 https://github.com/Amphibitus/selectThemes  
