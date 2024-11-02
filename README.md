@@ -106,6 +106,11 @@ https://github.com/opengisch/qgis_excel_sync
 https://github.com/camptocamp/QGIS-SpreadSheetLayers  
 ### MOJXML Loader
 https://github.com/MIERUNE/qgis-mojxml-plugin  
+## 開発 (追加予定)   
+### Plugin Builder 3  
+https://github.com/g-sherman/Qgis-Plugin-Builder  
+### Plugin Reloader
+https://github.com/borysiasty/plugin_reloader
 ## その他
 ### Select Themes
 https://github.com/Amphibitus/selectThemes  
