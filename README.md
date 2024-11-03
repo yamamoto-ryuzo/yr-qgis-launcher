@@ -120,5 +120,12 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-#### ・補足事項
-    .BATの改行コードをWindows用にするため　.gitattributes　を設置  
+#### ・補足事項  
+    .BATの改行コードをWindows用にするため　.gitattributes　を設置    
+    
+    バージョンについて    
+    VA.B.C  例（V1.2.3　　A=1、B=2,C=3）  
+     A:QGISのバージョンアップに伴う、本体の修正  
+     B:UIの変更（プラグインの追加等含む）、本体のバグ修正  
+     C:プロファイル・プラグインの修正  
+    
