@@ -178,7 +178,7 @@ class CreateSimpleMap:
 
     def create_title_item(self, composer, decoration, offset_x=0, offset_y=0):
         option = decoration.getType()
-        titleFont = QFont(decoration.getFontFamily(), decoration.getFontSize())
+        titleFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()))
 
         if option == "title":
             titleFont.setBold(True)
@@ -207,7 +207,7 @@ class CreateSimpleMap:
     def create_text_item(self, composer, decoration, offset_x=0, offset_y=0):
         option = decoration.getType()
 
-        textFont = QFont(decoration.getFontFamily(), decoration.getFontSize())
+        textFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()))
         item = QgsLayoutItemLabel(composer)
         item.setFont(textFont)
         item.setText(decoration.getText())
@@ -297,10 +297,10 @@ class CreateSimpleMap:
         return composerMap
 
     def create_legend_item(self, composer, decoration, offset_x=0, offset_y=0):
-        legendFont = QFont(decoration.getFontFamily(), decoration.getFontSize())
-        groupFont = QFont(decoration.getFontFamily(), decoration.getFontSize() - 1)
-        layerFont = QFont(decoration.getFontFamily(), decoration.getFontSize() - 2)
-        itemFont = QFont(decoration.getFontFamily(), decoration.getFontSize() - 2)
+        legendFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()))
+        groupFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()) - 1)
+        layerFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()) - 2)
+        itemFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()) - 2)
         item = QgsLayoutItemLegend(composer)
         item.setTitle(decoration.getText())
         item.adjustBoxSize()
@@ -362,7 +362,7 @@ class CreateSimpleMap:
         return item
 
     def create_date_item(self, composer, decoration, offset_x=0, offset_y=0):
-        dateFont = QFont(decoration.getFontFamily(), decoration.getFontSize())
+        dateFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()))
         item = QgsLayoutItemLabel(composer)
         item.setFont(dateFont)
         d = time.localtime()
@@ -751,7 +751,7 @@ class CreateSimpleMap:
     ):
         # TODO: 関数かクラスにもっと分ける
         # TODO: 1クラスで、label, scalebar, scalebarと作成しているが分けるか検討
-        textFont = QFont(decoration.getFontFamily(), decoration.getFontSize())
+        textFont = QFont(decoration.getFontFamily(), int(decoration.getFontSize()))
 
         scaleBarLabel = QgsLayoutItemScaleBar(composer)
         scaleBarLabel.setLinkedMap(composerMap)

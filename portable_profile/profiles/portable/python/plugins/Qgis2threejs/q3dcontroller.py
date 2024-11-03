@@ -12,16 +12,16 @@ from .build import ThreeJSBuilder
 from .exportsettings import ExportSettings
 from .q3dcore import Layer
 from .q3dconst import LayerType, Script
-from .tools import hex_color, js_bool, logMessage
+from .utils import hex_color, js_bool, logMessage
 
 
 class Q3DControllerInterface(QObject):
 
-    # signals
-    dataReady = pyqtSignal(dict)                 # data
-    scriptReady = pyqtSignal(str, object, str)   # script, data, msg_shown_in_log_panel
-    messageReady = pyqtSignal(str, int, bool)    # message, timeout, show_in_msg_bar
-    progressUpdated = pyqtSignal(int, str)
+    # signals - controller iface to viewer iface
+    dataSent = pyqtSignal(dict)                  # data
+    scriptSent = pyqtSignal(str, object, str)    # script, data, msg_shown_in_log_panel
+    statusMessage = pyqtSignal(str, int)         # message, timeout_ms
+    progressUpdated = pyqtSignal(int, str)       # percentage, msg
     loadScriptsRequest = pyqtSignal(list, bool)  # list of script ID, force (if False, do not load a script that is already loaded)
     readyToQuit = pyqtSignal()
 
@@ -35,11 +35,11 @@ class Q3DControllerInterface(QObject):
         """iface: web view side interface (Q3DInterface or its subclass)"""
         self.iface = iface
 
-        self.dataReady.connect(iface.loadJSONObject)
-        self.scriptReady.connect(iface.runScript)
+        self.dataSent.connect(iface.sendJSONObject)
+        self.scriptSent.connect(iface.runScript)
         self.loadScriptsRequest.connect(iface.loadScriptFiles)
-        self.messageReady.connect(iface.showMessage)
-        self.progressUpdated.connect(iface.progress)
+        self.statusMessage.connect(iface.statusMessage)
+        self.progressUpdated.connect(iface.progressUpdated)
 
         if hasattr(iface, "abortRequest"):
             iface.abortRequest.connect(self.controller.abort)
@@ -56,46 +56,47 @@ class Q3DControllerInterface(QObject):
             iface.layerRemoved.connect(self.controller.removeLayer)
 
     def disconnectFromIface(self):
-        self.dataReady.disconnect(self.iface.loadJSONObject)
-        self.scriptReady.disconnect(self.iface.runScript)
-        self.loadScriptsRequest.disconnect(self.iface.loadScriptFiles)
-        self.messageReady.disconnect(self.iface.showMessage)
-        self.progressUpdated.disconnect(self.iface.progress)
+        iface = self.iface
 
-        if hasattr(self.iface, "abortRequest"):
-            self.iface.abortRequest.disconnect(self.controller.abort)
-            self.iface.buildSceneRequest.disconnect(self.controller.requestBuildScene)
-            self.iface.buildLayerRequest.disconnect(self.controller.requestBuildLayer)
-            self.iface.updateWidgetRequest.disconnect(self.controller.requestUpdateWidget)
-            self.iface.runScriptRequest.disconnect(self.controller.requestRunScript)
+        self.dataSent.disconnect(iface.sendJSONObject)
+        self.scriptSent.disconnect(iface.runScript)
+        self.loadScriptsRequest.disconnect(iface.loadScriptFiles)
+        self.statusMessage.disconnect(iface.statusMessage)
+        self.progressUpdated.disconnect(iface.progressUpdated)
 
-            self.iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
-            self.iface.cameraChanged.disconnect(self.controller.switchCamera)
-            self.iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
-            self.iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
-            self.iface.layerAdded.disconnect(self.controller.addLayer)
-            self.iface.layerRemoved.disconnect(self.controller.removeLayer)
+        if hasattr(iface, "abortRequest"):
+            iface.abortRequest.disconnect(self.controller.abort)
+            iface.buildSceneRequest.disconnect(self.controller.requestBuildScene)
+            iface.buildLayerRequest.disconnect(self.controller.requestBuildLayer)
+            iface.updateWidgetRequest.disconnect(self.controller.requestUpdateWidget)
+            iface.runScriptRequest.disconnect(self.controller.requestRunScript)
+
+            iface.updateExportSettingsRequest.disconnect(self.controller.updateExportSettings)
+            iface.cameraChanged.disconnect(self.controller.switchCamera)
+            iface.navStateChanged.disconnect(self.controller.setNavigationEnabled)
+            iface.previewStateChanged.disconnect(self.controller.setPreviewEnabled)
+            iface.layerAdded.disconnect(self.controller.addLayer)
+            iface.layerRemoved.disconnect(self.controller.removeLayer)
 
         self.iface = None
 
-    def loadJSONObject(self, obj):
-        self.dataReady.emit(obj)
+    def sendJSONObject(self, obj):
+        self.dataSent.emit(obj)
 
     def runScript(self, string, data=None, msg=""):
-        self.scriptReady.emit(string, data, msg)
+        self.scriptSent.emit(string, data, msg)
 
-    def showMessage(self, msg, timeout=0):
-        """show message in status bar. timeout: in milli-seconds"""
-        self.messageReady.emit(msg, timeout, False)
+    def showStatusMessage(self, msg, timeout_ms=0):
+        """show message in status bar"""
+        self.statusMessage.emit(msg, timeout_ms)
 
-    def clearMessage(self):
+    def clearStatusMessage(self):
         """clear message in status bar"""
-        self.messageReady.emit("", 0, False)
+        self.statusMessage.emit("", 0)
 
-    def showMessageBar(self, msg="", timeout=10):
-        """show message bar (error message only). timeout: in seconds"""
-        msg = msg or "An error has occurred. See log messages panel for details."
-        self.messageReady.emit(msg, timeout, True)
+    def showMessageBar(self, msg, timeout_ms=0, warning=False):
+        """show message bar at top of web view"""
+        self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), data=msg)
 
     def progress(self, percentage=100, msg=""):
         self.progressUpdated.emit(int(percentage), msg)
@@ -124,12 +125,14 @@ class Q3DController(QObject):
 
             err_msg = settings.checkValidity()
             if err_msg:
-                logMessage("Invalid settings: " + err_msg)
+                logMessage("Invalid settings: " + err_msg, warning=True)
 
         self.settings = settings
         self.builder = ThreeJSBuilder(settings)
 
         self.iface = Q3DControllerInterface(self)
+        self.iface.setObjectName("controllerInterface")
+
         self.enabled = True
         self.aborted = False  # layer export aborted
         self.buildingLayer = None
@@ -146,8 +149,12 @@ class Q3DController(QObject):
 
         self.timer.timeout.connect(self._processRequests)
 
-    def __del__(self):
+    def teardown(self):
         self.timer.stop()
+        self.timer.timeout.disconnect(self._processRequests)
+
+        self.iface.deleteLater()
+        self.iface = None
 
     def connectToIface(self, iface):
         """iface: Q3DInterface or its subclass"""
@@ -180,7 +187,7 @@ class Q3DController(QObject):
         if update_extent and self.mapCanvas:
             self.builder.settings.setMapSettings(self.mapCanvas.mapSettings())
 
-        self.iface.loadJSONObject(self.builder.buildScene(False))
+        self.iface.sendJSONObject(self.builder.buildScene(False))
 
         if update_scene_opts:
             sp = self.settings.sceneProperties()
@@ -204,7 +211,7 @@ class Q3DController(QObject):
             self.buildLayers()
 
         self.iface.progress()
-        self.iface.clearMessage()
+        self.iface.clearStatusMessage()
         return not self.aborted
 
     def buildLayers(self):
@@ -234,7 +241,7 @@ class Q3DController(QObject):
         ret = self._buildLayer(layer)
 
         self.iface.progress()
-        self.iface.clearMessage()
+        self.iface.clearStatusMessage()
 
         if ret and len(self.settings.layersToExport()) == 1:
             self.iface.runScript("adjustCameraPos()")
@@ -265,7 +272,7 @@ class Q3DController(QObject):
         for builder in self.builder.layerBuilders(layer):
             self.iface.progress(i / (i + 4) * 100, pmsg)
             if self.aborted:
-                logMessage("***** layer building aborted *****", False)
+                logMessage("***** layer building aborted *****")
                 self.buildingLayer = None
                 return False
 
@@ -274,7 +281,7 @@ class Q3DController(QObject):
             t2 = time.time()
 
             if obj:
-                self.iface.loadJSONObject(obj)
+                self.iface.sendJSONObject(obj)
 
             QgsApplication.processEvents()      # NOTE: process events only for the calling thread
             i += 1
@@ -333,9 +340,9 @@ class Q3DController(QObject):
 
         except Exception as e:
             import traceback
-            logMessage(traceback.format_exc())
+            logMessage(traceback.format_exc(), warning=True)
 
-            self.iface.showMessageBar()
+            self.iface.showMessageBar("One or more errors occurred. See log messages panel in QGIS main window for details.", warning=True)
 
         self.processRequests()
 
@@ -346,17 +353,18 @@ class Q3DController(QObject):
 
         if not self.aborted:
             self.aborted = True
-            self.iface.showMessage("Aborting processing...")
+            self.iface.showStatusMessage("Aborting processing...")
 
     @pyqtSlot()
     def quit(self):
         self.abort()
         self.iface.readyToQuit.emit()
+        self.teardown()
 
     @pyqtSlot(object, bool, bool)
     def requestBuildScene(self, properties=None, update_all=True, reload=False):
         if DEBUG_MODE:
-            logMessage("Scene update requested: {}".format(properties), False)
+            logMessage("Scene update requested: {}".format(properties))
 
         if properties:
             self.settings.setSceneProperties(properties)
@@ -378,7 +386,7 @@ class Q3DController(QObject):
     @pyqtSlot(Layer)
     def requestBuildLayer(self, layer):
         if DEBUG_MODE:
-            logMessage("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"), False)
+            logMessage("Layer update for {} requested ({}).".format(layer.layerId, "visible" if layer.visible else "hidden"))
 
         # update layer properties and layer state in worker side export settings
         lyr = self.settings.getLayer(layer.layerId)
@@ -494,7 +502,7 @@ class Mock:
 
     def __getattr__(self, attr):
         if DEBUG_MODE:
-            logMessage("Mock: {}".format(attr), False)
+            logMessage("Mock: {}".format(attr))
         return Mock
 
     def __bool__(self):

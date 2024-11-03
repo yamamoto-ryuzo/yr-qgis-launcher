@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2014-01-10
 
-import configparser
+from configparser import ConfigParser
 import os
 from PyQt5.QtCore import Qt, QDir, QSettings
 from PyQt5.QtWidgets import QDialog, QFileDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 
-from .tools import logMessage, pluginDir
+from .utils import logMessage, pluginDir
 from .ui.settingsdialog import Ui_SettingsDialog
 
 
@@ -44,15 +44,15 @@ class SettingsDialog(QDialog):
             if name[0] == "_":    # skip __pycache__ dir.
                 continue
 
-            parser = configparser.SafeConfigParser()
+            parser = ConfigParser()
             try:
                 with open(os.path.join(plugin_dir.absoluteFilePath(name), "metadata.txt"), "r", encoding="utf-8") as f:
-                    parser.readfp(f)
+                    parser.read_file(f)
 
                 metadata = dict(parser.items("general"))
                 self.plugin_metadata.append(metadata)
             except Exception as e:
-                logMessage("Unable to read metadata of plugin: {} ({})".format(name, e))
+                logMessage("Unable to read metadata of plugin: {} ({})".format(name, e), error=True)
 
         tableWidget.setRowCount(len(self.plugin_metadata))
         for i, metadata in enumerate(self.plugin_metadata):

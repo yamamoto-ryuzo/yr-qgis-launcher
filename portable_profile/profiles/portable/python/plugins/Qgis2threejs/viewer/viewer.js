@@ -19,11 +19,13 @@ var preview = {
 
 //// initialization
 
-var pyData;
+function init(off_screen, debug_mode, qgis_version, is_webengine) {
 
-function init(off_screen, debug_mode, webengine) {
+	Q3D.Config.debugMode = debug_mode;
+	Q3D.Config.qgisVersion = qgis_version;
+	Q3D.Config.isWebEngine = is_webengine;
 
-	if (webengine) {
+	if (is_webengine) {
 		// Web Channel
 		new QWebChannel(qt.webChannelTransport, function(channel) {
 			window.pyObj = channel.objects.bridge;
@@ -33,26 +35,26 @@ function init(off_screen, debug_mode, webengine) {
 				};
 
 				eval(script);
+
+				if (Q3D.Config.debugMode) logSignal("sendScriptData", script, data);
 			});
 
-			_init(off_screen, debug_mode);
+			_init(off_screen);
 
-			pyObj.onInitialized();
 		});
 	}
 	else {
 		// WebKit Bridge
-		pyData = function () {
+		window.pyData = function () {
 			return pyObj.data();
 		}
 
-		_init(off_screen, debug_mode);
+		_init(off_screen);
 
-		pyObj.onInitialized();
 	}
 }
 
-function _init(off_screen, debug_mode) {
+function _init(off_screen) {
 
 	var container = Q3D.E("view");
 	app.init(container);
@@ -85,23 +87,49 @@ function _init(off_screen, debug_mode) {
 		pyObj.onAnimationStopped();
 	});
 
-	if (debug_mode) {
+	if (Q3D.Config.debugMode) {
 		displayFPS();
-		if (debug_mode == 2) Q3D.Config.debugMode = true;
 	}
 
 	// check extension support of web view
 	// see https://github.com/minorua/Qgis2threejs/issues/147
 	var gl = app.renderer.getContext();		// WebGLRenderingContext
 	if (gl.getExtension("WEBGL_depth_texture") === null) {
-		var msg = "No 3D objects were rendered? There is a compatibility issue with QGIS 3D view. " +
-					"You need to close QGIS 3D view(s) and restart QGIS to use this preview.";
+
+		var viewName = (Q3D.Config.isWebEngine) ? "WebEngine" : "WebKit";
+
+		var msg = "Currently, this web view (Qt " + viewName + ") can't display 3D objects. ";
+
+		if (!Q3D.Config.isWebEngine) {
+
+			if (Q3D.Config.qgisVersion >= 33600) {
+
+				msg += "Please use the Qt WebEngine view instead. You can find a guide on how to do this in the plugin ";
+				msg += "<a href='https://github.com/minorua/Qgis2threejs/wiki/How-to-use-Qt-WebEngine-view-with-Qgis2threejs'>wiki</a>.";
+
+			}
+			else {
+
+				msg += "Please consider using QGIS version 3.36 or a later version, which supports using Qt WebEngine view.";
+
+			}
+		}
+
 		showMessageBar(msg, undefined, true);
 	}
+
+	pyObj.onInitialized();
+}
+
+function logSignal(name, description, object) {
+
+	console.debug("↓", name, (description || ""), (object === undefined) ? "" : object);
+
 }
 
 //// load functions
 function loadJSONObject(jsonObject) {
+
 	var p = jsonObject.properties;
 
 	if (jsonObject.type == "scene" && p !== undefined) {
@@ -172,7 +200,7 @@ function loadModel(url) {
 		showMessageBar('Model preview: Successfully loaded "' + url.split("/").pop() + '". See console for details.', 3000);
 	};
 	var onError = function (e) {
-		console.log(e.message);
+		console.warn(e.message);
 		showMessageBar('Model preview: Failed to load "' + url.split("/").pop() + '". See console for details.', 5000, true);
 	};
 
@@ -275,13 +303,13 @@ function saveModelAsGLTF(filename) {
 }
 
 var barTimerId = null;
-function showMessageBar(message, duration, warning) {
+function showMessageBar(message, timeout_ms, warning) {
 	if (barTimerId !== null) {
 		clearTimeout(barTimerId);
 		barTimerId = null;
 	}
-	if (duration) {
-		barTimerId = setTimeout(closeMessageBar, duration);
+	if (timeout_ms) {
+		barTimerId = setTimeout(closeMessageBar, timeout_ms);
 	}
 
 	Q3D.E("msgcontent").innerHTML = message;
@@ -301,8 +329,8 @@ function closeMessageBar() {
 	barTimerId = null;
 }
 
-function showStatusMessage(message, duration) {
-	pyObj.showStatusMessage(message, duration || 0);
+function showStatusMessage(message, timeout_ms) {
+	pyObj.showStatusMessage(message, timeout_ms || 0);
 	console.log(message);
 }
 

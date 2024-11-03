@@ -19,8 +19,8 @@ from .q3dcontroller import Q3DController
 from .q3dconst import LayerType, Script
 from .q3dinterface import Q3DInterface
 from .q3dview import Q3DWebPage
-from .tools import hex_color
-from . import tools
+from .utils import hex_color
+from . import utils
 
 
 class ThreeJSExporter(ThreeJSBuilder):
@@ -68,7 +68,7 @@ class ThreeJSExporter(ThreeJSBuilder):
             with open(os.path.join(dataDir, "scene.json"), "w", encoding="utf-8") as f:
                 json.dump(json_object, f, indent=2 if DEBUG_MODE else None)
 
-        narration = self.settings.narrations()
+        narration = self.settings.narrations(warning_log=self.warning_log)
 
         # copy files
         files = narration["files"]
@@ -79,13 +79,13 @@ class ThreeJSExporter(ThreeJSBuilder):
             QDir().mkpath(img_dir)
 
             for f in files:
-                if tools.copyFile(f, os.path.join(img_dir, os.path.basename(f)), overwrite=True):
+                if utils.copyFile(f, os.path.join(img_dir, os.path.basename(f)), overwrite=True):
                     self.log("Copied {}.".format(f))
                 else:
                     self.log("Failed to copy {}.".format(f), warning=True)
 
         self.progress(95, "Copying library files...")
-        tools.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
+        utils.copyFiles(self.filesToCopy(), self.settings.outputDirectory())
 
         # options in html file
         options = []
@@ -109,7 +109,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         opts = self.settings.options()
         if opts:
             for key in opts:
-                options.append("Q3D.Config.{0} = {1};".format(key, tools.pyobj2js(self.settings.option(key))))
+                options.append("Q3D.Config.{0} = {1};".format(key, utils.pyobj2js(self.settings.option(key))))
 
         # North arrow
         p = self.settings.widgetProperties("NorthArrow")
@@ -145,7 +145,7 @@ class ThreeJSExporter(ThreeJSBuilder):
         return self._index
 
     def buildLayer(self, layer, cancelSignal=None):
-        title = tools.abchex(self.nextLayerIndex())
+        title = utils.abchex(self.nextLayerIndex())
 
         if self.settings.localMode:
             pathRoot = urlRoot = None
@@ -287,11 +287,11 @@ class BridgeExporterBase:
         self.settings = settings or ExportSettings()
         self.settings.isPreview = True
 
-        self.controller = Q3DController(self.settings)
-        self.exportMode = False
-
         self.page = Q3DWebPage()
         self.iface = Q3DInterface(self.settings, self.page)
+        self.iface.statusMessage.connect(self.iface.showStatusMessage)
+
+        self.controller = Q3DController(self.settings)
         self.controller.connectToIface(self.iface)
 
     def loadSettings(self, filename=None):
@@ -306,7 +306,7 @@ class BridgeExporterBase:
         self.page.setViewportSize(QSize(width, height))
 
         if self.page.mainFrame().url().isEmpty():
-            self.page.setup(self.settings, exportMode=self.exportMode)
+            self.page.setup(self.settings)
         else:
             self.page.reload()
 
@@ -358,7 +358,6 @@ class ModelExporter(BridgeExporterBase):
     def __init__(self, settings=None):
         super().__init__(settings)
         self.settings.jsonSerializable = True
-        self.exportMode = True
 
     def initWebPage(self, width, height):
         super().initWebPage(width, height)

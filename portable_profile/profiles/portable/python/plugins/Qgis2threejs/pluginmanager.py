@@ -7,7 +7,7 @@ import importlib
 import sys
 
 from PyQt5.QtCore import QDir, QSettings
-from .tools import logMessage, pluginDir
+from .utils import logMessage, pluginDir
 
 
 _pluginManager = None
@@ -45,7 +45,7 @@ class PluginManager:
                 self.modules.append(module)
                 self.plugins.append(getattr(module, "plugin_class"))
             except ImportError:
-                logMessage("Failed to load plugin: " + str(name))
+                logMessage("Failed to load plugin: " + str(name), error=True)
 
     def demProviderPlugins(self):
         plugins = []

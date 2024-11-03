@@ -1,1 +1,3 @@
-*.bat  text eol=crlf
+* text=auto
+*.qgs text eol=lf
+*.bat text eol=crlf

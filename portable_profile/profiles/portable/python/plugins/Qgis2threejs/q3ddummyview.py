@@ -3,11 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2023-11-10
 
+from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QGraphicsColorizeEffect, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView
 from PyQt5.QtGui import QColorConstants, QPixmap
 
 from .conf import DEBUG_MODE
-from .tools import logMessage, pluginDir
+from .utils import logMessage, pluginDir
 
 
 class Q3DDummyView(QGraphicsView):
@@ -28,18 +29,27 @@ class Q3DDummyView(QGraphicsView):
 
         self.setScene(scene)
 
-    def disableWidgetsAndMenus(self, wnd):
-        ui = wnd.ui
-        objs = [ui.checkBoxPreview, ui.menuSaveAs, ui.actionReload, ui.actionResetCameraPosition]
+    def teardown(self):
+        pass
+
+    def page(self):
+        return self._page
+
+    def showDevTools(self):
+        pass
+
+    def disableWidgetsAndMenus(self, ui):
+        objs = [ui.checkBoxPreview, ui.menuSaveAs, ui.actionReload,
+                ui.actionResetCameraPosition, ui.actionDevTools, ui.actionUsage]
 
         for obj in objs:
             obj.setEnabled(False)
 
+    def __bool__(self):
+        return False
 
-class Q3DDummyPage:
 
-    def __init__(self):
-        pass
+class Q3DDummyPage(QObject):
 
     def __bool__(self):
         return False

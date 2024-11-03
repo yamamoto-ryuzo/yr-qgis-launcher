@@ -8,8 +8,8 @@ from datetime import datetime
 
 from PyQt5.QtCore import Qt, QDir, QEvent, QEventLoop, QObject, QSettings, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QColor, QDesktopServices, QIcon
-from PyQt5.QtWidgets import (QAction, QActionGroup, QApplication, QCheckBox, QComboBox,
-                             QDialog, QDialogButtonBox, QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar)
+from PyQt5.QtWidgets import (QAction, QActionGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+                             QFileDialog, QMainWindow, QMenu, QMessageBox, QProgressBar, QStyle, QToolButton)
 from qgis.core import Qgis, QgsProject, QgsApplication
 
 from .conf import DEBUG_MODE, RUN_CNTLR_IN_BKGND, PLUGIN_NAME, PLUGIN_VERSION
@@ -20,8 +20,12 @@ from .q3dcore import Layer
 from .q3dconst import LayerType, Script
 from .q3dcontroller import Q3DController
 from .q3dinterface import Q3DInterface
-from .tools import createUid, hex_color, js_bool, logMessage, pluginDir
+from . import q3dview
+from .q3dview import WEBENGINE_AVAILABLE, WEBKIT_AVAILABLE, WEBVIEWTYPE_WEBENGINE, setCurrentWebView
+from . import utils
+from .utils import createUid, hex_color, logMessage, pluginDir, Correspondent
 from .ui.propertiesdialog import Ui_PropertiesDialog
+from .ui import q3dwindow as ui_wnd
 from .ui.q3dwindow import Ui_Q3DWindow
 
 
@@ -47,31 +51,6 @@ class Q3DViewerInterface(Q3DInterface):
         self.wnd = wnd
         self.treeView = treeView
 
-    # @pyqtSlot(str, int, bool)
-    def showMessage(self, msg, timeout=0, show_in_msg_bar=False):
-        if not self.enabled:
-            return
-
-        if show_in_msg_bar:
-            self.wnd.qgisIface.messageBar().pushMessage("Qgis2threejs Error", msg, level=Qgis.Warning, duration=timeout)
-        else:
-            self.wnd.ui.statusbar.showMessage(msg, timeout)
-
-    # @pyqtSlot(int, str)
-    def progress(self, percentage=100, msg=None):
-        if not self.enabled:
-            return
-
-        bar = self.wnd.ui.progressBar
-        if percentage == 100:
-            bar.setVisible(False)
-            bar.setFormat("")
-        else:
-            bar.setVisible(True)
-            bar.setValue(percentage)
-            if msg is not None:
-                bar.setFormat(msg)
-
     def abort(self):
         self.abortRequest.emit(True)
 
@@ -94,12 +73,9 @@ class Q3DViewerInterface(Q3DInterface):
 
 class Q3DWindow(QMainWindow):
 
-    def __init__(self, qgisIface, settings, preview=True):
+    def __init__(self, qgisIface, settings, webViewType=WEBVIEWTYPE_WEBENGINE, previewEnabled=True):
         QMainWindow.__init__(self, parent=qgisIface.mainWindow())
         self.setAttribute(Qt.WA_DeleteOnClose)
-
-        # set map settings
-        settings.setMapSettings(qgisIface.mapCanvas().mapSettings())
 
         self.qgisIface = qgisIface
         self.settings = settings
@@ -108,22 +84,33 @@ class Q3DWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(pluginDir("Qgis2threejs.png")))
 
+        # web view
+        if webViewType is not None:
+            setCurrentWebView(webViewType)
+
+        ui_wnd.Q3DView = q3dview.Q3DView
         self.ui = Ui_Q3DWindow()
         self.ui.setupUi(self)
 
-        self.webPage = self.ui.webView._page
+        self.webPage = self.ui.webView.page()
 
         if self.webPage:
             settings.jsonSerializable = self.webPage.isWebEnginePage
+            viewName = "WebEngine" if self.webPage.isWebEnginePage else "WebKit"
         else:
-            preview = False
+            previewEnabled = False
+            viewName = ""
 
         self.iface = Q3DViewerInterface(settings, self.webPage, self, self.ui.treeView, parent=self)
+        self.iface.setObjectName("viewerInterface")
+        self.iface.statusMessage.connect(self.ui.statusbar.showMessage)
+        self.iface.progressUpdated.connect(self.progress)
 
         self.thread = QThread(self) if RUN_CNTLR_IN_BKGND else None
 
         self.controller = Q3DController(settings, self.thread)
-        self.controller.enabled = preview
+        self.controller.setObjectName("controller")
+        self.controller.enabled = previewEnabled
 
         if self.thread:
             self.thread.finished.connect(self.controller.deleteLater)
@@ -134,22 +121,28 @@ class Q3DWindow(QMainWindow):
 
         self.controller.connectToIface(self.iface)
 
-        self.setupMenu()
-        self.setupConsole()
-        self.setupStatusBar(self.iface, preview)
+        self.setupMenu(self.ui)
+        self.setupStatusBar(self.ui, self.iface, previewEnabled, viewName)
         self.ui.treeView.setup(self.iface, self.icons)
         self.ui.treeView.addLayers(settings.layers())
 
         if self.webPage:
-            self.ui.webView.setup(self.iface, settings, self, preview)
-        else:
-            self.ui.webView.disableWidgetsAndMenus(self)
+            # to listen messages to be logged
+            utils.correspondent = Correspondent(self)
+            utils.correspondent.messageSent.connect(self.webPage.logToConsole)
 
-        self.ui.dockWidgetConsole.hide()
+            self.ui.webView.setup(self.iface, settings, wnd=self, enabled=previewEnabled)
+            self.ui.webView.fileDropped.connect(self.fileDropped)
+
+            if self.webPage.isWebEnginePage:
+                self.ui.webView.devToolsClosed.connect(self.ui.toolButtonConsoleStatus.hide)
+        else:
+            utils.correspondent = None
+
+            self.ui.webView.disableWidgetsAndMenus(self.ui)
+
         self.ui.animationPanel.setup(self, settings)
 
-        # signal-slot connections
-        # map canvas
         self.controller.connectToMapCanvas(qgisIface.mapCanvas())
 
         # restore window geometry and dockwidget layout
@@ -157,38 +150,59 @@ class Q3DWindow(QMainWindow):
         self.restoreGeometry(settings.value("/Qgis2threejs/wnd/geometry", b""))
         self.restoreState(settings.value("/Qgis2threejs/wnd/state", b""))
 
-    def closeEvent(self, event):
-        self.iface.enabled = False
-        self.controller.iface.disconnectFromIface()
+        if DEBUG_MODE:
+            from .debug_utils import watchGarbageCollection
+            watchGarbageCollection(self)
 
-        # save export settings to a settings file
+    def closeEvent(self, event):
         try:
+            self.iface.enabled = False
+            self.controller.iface.disconnectFromIface()
+            self.controller.disconnectFromMapCanvas()
+
+            if utils.correspondent:
+                utils.correspondent.messageSent.disconnect(self.webPage.logToConsole)
+                utils.correspondent = None
+
+            if self.webPage and self.webPage.isWebEnginePage:
+                self.webPage.jsErrorWarning.disconnect(self.showConsoleStatusIcon)
+
+            # save export settings to a settings file
             self.settings.setAnimationData(self.ui.animationPanel.data())
             self.settings.saveSettings()
+
+            settings = QSettings()
+            settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
+            settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
+
+            # send quit request to the controller and wait until the controller gets ready to quit
+            loop = QEventLoop()
+            self.controller.iface.readyToQuit.connect(loop.quit)
+            self.iface.quit(self.controller)
+            loop.exec_()
+
+            # stop worker thread event loop
+            if self.thread:
+                self.thread.quit()
+                self.thread.wait()
+
+            # close dialogs
+            for dlg in self.findChildren(QDialog):
+                dlg.close()
+
+            # break circular references
+            self.iface.wnd = None
+            self.ui.treeView.wnd = None
+            self.ui.animationPanel.wnd = None
+            self.ui.animationPanel.ui.treeWidgetAnimation.wnd = None
+
+            self.ui.webView.teardown()
+
         except Exception as e:
             import traceback
             logMessage(traceback.format_exc(), error=True)
 
-            self.iface.showMessage(str(e), show_in_msg_bar=True)
-
-        settings = QSettings()
-        settings.setValue("/Qgis2threejs/wnd/geometry", self.saveGeometry())
-        settings.setValue("/Qgis2threejs/wnd/state", self.saveState())
-
-        # send quit request to the controller and wait until the controller gets ready to quit
-        loop = QEventLoop()
-        self.controller.iface.readyToQuit.connect(loop.quit)
-        self.iface.quit(self.controller)
-        loop.exec_()
-
-        # stop worker thread event loop
-        if self.thread:
-            self.thread.quit()
-            self.thread.wait()
-
-        # close dialogs
-        for dlg in self.findChildren(QDialog):
-            dlg.close()
+            self.qgisIface.messageBar().pushMessage("Qgis2threejs Error", str(e), level=Qgis.Warning)
 
         QMainWindow.closeEvent(self, event)
 
@@ -206,88 +220,102 @@ class Q3DWindow(QMainWindow):
             LayerType.POINTCLOUD: QgsApplication.getThemeIcon("mIconPointCloudLayer.svg") if Qgis.QGIS_VERSION_INT >= 31800 else QIcon(pluginDir("svg", "pointcloud.svg"))
         }
 
-    def setupMenu(self):
-        self.ui.menuPanels.addAction(self.ui.dockWidgetLayers.toggleViewAction())
-        self.ui.menuPanels.addAction(self.ui.dockWidgetAnimation.toggleViewAction())
-        self.ui.menuPanels.addAction(self.ui.dockWidgetConsole.toggleViewAction())
+    def setupMenu(self, ui):
+        ui.menuPanels.addAction(ui.dockWidgetLayers.toggleViewAction())
+        ui.menuPanels.addAction(ui.dockWidgetAnimation.toggleViewAction())
 
-        self.ui.actionGroupCamera = QActionGroup(self)
-        self.ui.actionPerspective.setActionGroup(self.ui.actionGroupCamera)
-        self.ui.actionOrthographic.setActionGroup(self.ui.actionGroupCamera)
-        self.ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
-        self.ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
+        ui.actionGroupCamera = QActionGroup(self)
+        ui.actionPerspective.setActionGroup(ui.actionGroupCamera)
+        ui.actionOrthographic.setActionGroup(ui.actionGroupCamera)
+        ui.actionOrthographic.setChecked(self.settings.isOrthoCamera())
+        ui.actionNavigationWidget.setChecked(self.settings.isNavigationEnabled())
 
         # signal-slot connections
-        self.ui.actionExportToWeb.triggered.connect(self.exportToWeb)
-        self.ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
-        self.ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
-        self.ui.actionLoadSettings.triggered.connect(self.loadSettings)
-        self.ui.actionSaveSettings.triggered.connect(self.saveSettings)
-        self.ui.actionClearSettings.triggered.connect(self.clearSettings)
-        self.ui.actionPluginSettings.triggered.connect(self.pluginSettings)
-        self.ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
-        self.ui.actionGroupCamera.triggered.connect(self.cameraChanged)
-        self.ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
-        self.ui.actionAddPlane.triggered.connect(self.addPlane)
-        self.ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
-        self.ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
-        self.ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
-        self.ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
-        self.ui.actionReload.triggered.connect(self.reloadPage)
-        self.ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
-        self.ui.actionUsage.triggered.connect(self.usage)
-        self.ui.actionHelp.triggered.connect(self.help)
-        self.ui.actionHomePage.triggered.connect(self.homePage)
-        self.ui.actionSendFeedback.triggered.connect(self.sendFeedback)
-        self.ui.actionAbout.triggered.connect(self.about)
+        ui.actionExportToWeb.triggered.connect(self.exportToWeb)
+
+        if WEBENGINE_AVAILABLE or WEBKIT_AVAILABLE:
+            ui.actionSaveAsImage.triggered.connect(self.saveAsImage)
+            ui.actionSaveAsGLTF.triggered.connect(self.saveAsGLTF)
+        else:
+            ui.actionSaveAsImage.setEnabled(False)
+            ui.actionSaveAsGLTF.setEnabled(False)
+
+        ui.actionLoadSettings.triggered.connect(self.loadSettings)
+        ui.actionSaveSettings.triggered.connect(self.saveSettings)
+        ui.actionClearSettings.triggered.connect(self.clearSettings)
+        ui.actionPluginSettings.triggered.connect(self.pluginSettings)
+        ui.actionSceneSettings.triggered.connect(self.showScenePropertiesDialog)
+        ui.actionGroupCamera.triggered.connect(self.cameraChanged)
+        ui.actionNavigationWidget.toggled.connect(self.iface.navStateChanged)
+        ui.actionAddPlane.triggered.connect(self.addPlane)
+        ui.actionAddPointCloudLayer.triggered.connect(self.showAddPointCloudLayerDialog)
+        ui.actionNorthArrow.triggered.connect(self.showNorthArrowDialog)
+        ui.actionHeaderFooterLabel.triggered.connect(self.showHFLabelDialog)
+        ui.actionResetCameraPosition.triggered.connect(self.resetCameraState)
+        ui.actionReload.triggered.connect(self.reloadPage)
+        ui.actionDevTools.triggered.connect(ui.webView.showDevTools)
+        ui.actionAlwaysOnTop.toggled.connect(self.alwaysOnTopToggled)
+        ui.actionUsage.triggered.connect(self.usage)
+        ui.actionHelp.triggered.connect(self.help)
+        ui.actionHomePage.triggered.connect(self.homePage)
+        ui.actionSendFeedback.triggered.connect(self.sendFeedback)
+        ui.actionVersion.triggered.connect(self.about)
 
         self.alwaysOnTopToggled(False)
 
         if DEBUG_MODE and self.webPage:
-            self.ui.menuDev = QMenu(self.ui.menubar)
-            self.ui.menuDev.setTitle("&Dev")
-            self.ui.menubar.addAction(self.ui.menuDev.menuAction())
+            ui.menuTestDebug = QMenu(ui.menubar)
+            ui.menuTestDebug.setTitle("Test&&&Debug")
+            ui.menubar.addAction(ui.menuTestDebug.menuAction())
 
-            self.ui.actionTest = QAction(self)
-            self.ui.actionTest.setText("Run Test")
-            self.ui.menuDev.addAction(self.ui.actionTest)
-            self.ui.actionTest.triggered.connect(self.runTest)
+            ui.actionTest = QAction(self)
+            ui.actionTest.setText("Run Test")
+            ui.menuTestDebug.addAction(ui.actionTest)
+            ui.actionTest.triggered.connect(self.runTest)
 
-            self.ui.actionInspector = QAction(self)
-            self.ui.actionInspector.setText("Web Inspector...")
-            self.ui.menuDev.addAction(self.ui.actionInspector)
-            self.ui.actionInspector.triggered.connect(self.ui.webView.showInspector)
+            if self.webPage.isWebEnginePage:
+                ui.actionGPUInfo = QAction(self)
+                ui.actionGPUInfo.setText("GPU Info")
+                ui.menuTestDebug.addAction(ui.actionGPUInfo)
+                ui.actionGPUInfo.triggered.connect(ui.webView.showGPUInfo)
 
-            self.ui.actionJSInfo = QAction(self)
-            self.ui.actionJSInfo.setText("three.js Info...")
-            self.ui.menuDev.addAction(self.ui.actionJSInfo)
-            self.ui.actionJSInfo.triggered.connect(self.ui.webView.showJSInfo)
+            ui.actionJSInfo = QAction(self)
+            ui.actionJSInfo.setText("three.js Info...")
+            ui.menuTestDebug.addAction(ui.actionJSInfo)
+            ui.actionJSInfo.triggered.connect(ui.webView.showJSInfo)
 
-    def setupConsole(self):
-        # console
-        self.ui.actionConsoleCopy.triggered.connect(self.copyConsole)
-        self.ui.actionConsoleClear.triggered.connect(self.clearConsole)
-        self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleCopy)
-        self.ui.listWidgetDebugView.addAction(self.ui.actionConsoleClear)
-
-        self.ui.lineEditInputBox.returnPressed.connect(self.runConsoleCommand)
-
-    def setupStatusBar(self, iface, previewEnabled=True):
-        w = QProgressBar(self.ui.statusbar)
+    def setupStatusBar(self, ui, iface, previewEnabled=True, viewName=""):
+        w = ui.progressBar = QProgressBar(ui.statusbar)
         w.setObjectName("progressBar")
         w.setMaximumWidth(250)
         w.setAlignment(Qt.AlignCenter)
-        w.setVisible(False)
-        self.ui.statusbar.addPermanentWidget(w)
-        self.ui.progressBar = w
+        w.hide()
+        ui.statusbar.addPermanentWidget(w)
 
-        w = QCheckBox(self.ui.statusbar)
+        w = ui.checkBoxPreview = QCheckBox(ui.statusbar)
         w.setObjectName("checkBoxPreview")
-        w.setText("Preview")  # _translate("Q3DWindow", "Preview"))
+        w.setText("Preview ({})".format(viewName) if viewName else "Preview is not available")  # _translate("Q3DWindow", "Preview"))
         w.setChecked(previewEnabled)
-        self.ui.statusbar.addPermanentWidget(w)
-        self.ui.checkBoxPreview = w
-        self.ui.checkBoxPreview.toggled.connect(iface.previewStateChanged)
+        w.toggled.connect(iface.previewStateChanged)
+        ui.statusbar.addPermanentWidget(w)
+
+        if self.webPage and self.webPage.isWebEnginePage:
+            w = ui.toolButtonConsoleStatus = QToolButton(ui.statusbar)
+            w.setObjectName("toolButtonConsoleStatus")
+            w.setToolTip("Click this button to open the developer tools.")
+            w.hide()
+            w.clicked.connect(self.ui.webView.showDevTools)
+            ui.statusbar.addPermanentWidget(w)
+
+            self.webPage.loadStarted.connect(ui.toolButtonConsoleStatus.hide)
+            self.webPage.jsErrorWarning.connect(self.showConsoleStatusIcon)
+
+    def showConsoleStatusIcon(self, is_error):
+        style = QgsApplication.style()
+        icon = style.standardIcon(QStyle.SP_MessageBoxCritical if is_error else QStyle.SP_MessageBoxWarning)
+
+        self.ui.toolButtonConsoleStatus.setIcon(icon)
+        self.ui.toolButtonConsoleStatus.show()
 
     def changeEvent(self, event):
         if event.type() == QEvent.WindowStateChange:
@@ -299,11 +327,19 @@ class Q3DWindow(QMainWindow):
     def runScript(self, string, data=None, message="", sourceID="Q3DWindow.py", callback=None, wait=False):
         return self.webPage.runScript(string, data, message, sourceID, callback, wait)
 
-    def showMessageBar(self, msg, duration=0, warning=False):
-        self.runScript("showMessageBar(pyData(), {}, {})".format(duration, js_bool(warning)), msg)
+    def showStatusMessage(self, msg, timeout_ms=0):
+        self.ui.statusbar.showMessage(msg, timeout_ms)
 
-    def showStatusMessage(self, message, duration=0):
-        self.ui.statusbar.showMessage(message, duration)
+    def progress(self, percentage, msg=None):
+        bar = self.ui.progressBar
+        if percentage == 100:
+            bar.setVisible(False)
+            bar.setFormat("")
+        else:
+            bar.setVisible(True)
+            bar.setValue(percentage)
+            if msg is not None:
+                bar.setFormat(msg)
 
     # layer tree view
     def showLayerPropertiesDialog(self, layer):
@@ -338,35 +374,22 @@ class Q3DWindow(QMainWindow):
         dialog.setLayer(layer)
         return dialog.page.properties()
 
-    # console
-    def copyConsole(self):
-        # copy selected item(s) text to clipboard
-        indices = self.ui.listWidgetDebugView.selectionModel().selectedIndexes()
-        text = "\n".join([str(index.data(Qt.DisplayRole)) for index in indices])
-        if text:
-            QApplication.clipboard().setText(text)
-
-    def clearConsole(self):
-        self.ui.listWidgetDebugView.clear()
-
-    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
+    def logToConsole(self, message, lineNumber="", sourceID=""):
         if sourceID:
             source = sourceID if lineNumber == "" else "{} ({})".format(sourceID.split("/")[-1], lineNumber)
             text = "{}: {}".format(source, message)
         else:
             text = message
-        self.ui.listWidgetDebugView.addItem(text)
 
-    def runConsoleCommand(self):
-        text = self.ui.lineEditInputBox.text()
-        self.ui.listWidgetDebugView.addItem("> " + text)
-        self.webPage.runScript(text, message=None, callback=self.runConsoleCommandCallback)
+        self.webPage.logToConsole(text)
 
-    def runConsoleCommandCallback(self, result):
-        if result is not None:
-            self.ui.listWidgetDebugView.addItem("<- {}".format(result))
-        self.ui.listWidgetDebugView.scrollToBottom()
-        self.ui.lineEditInputBox.clear()
+    def fileDropped(self, urls):
+        for url in urls:
+            filename = url.fileName()
+            if filename in ("cloud.js", "ept.json"):
+                self.addPointCloudLayer(url.toString())
+            else:
+                self.runScript("loadModel('{}')".format(url.toString()))
 
     # File menu
     def exportToWeb(self):
@@ -374,7 +397,7 @@ class Q3DWindow(QMainWindow):
 
         self.settings.setAnimationData(self.ui.animationPanel.data())
 
-        dialog = ExportToWebDialog(self.settings, self.ui.webView._page, self)
+        dialog = ExportToWebDialog(self.settings, self.ui.webView.page(), self)
         dialog.show()
         dialog.exec_()
 
@@ -386,6 +409,12 @@ class Q3DWindow(QMainWindow):
         from .imagesavedialog import ImageSaveDialog
         dialog = ImageSaveDialog(self)
         dialog.exec_()
+
+    # @pyqtSlot(int, int, QImage)   # connected to bridge.imageReady signal
+    def saveImage(self, width, height, image):
+        filename, _ = QFileDialog.getSaveFileName(self, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
+        if filename:
+            image.save(filename)
 
     def saveAsGLTF(self):
         if not self.ui.checkBoxPreview.isChecked():
@@ -403,6 +432,17 @@ class Q3DWindow(QMainWindow):
 
             self.ui.statusbar.clearMessage()
             self.lastDir = os.path.dirname(filename)
+
+    # @pyqtSlot(bytes, str)     # connected to bridge.modelDataReady signal
+    def saveModelData(self, data, filename):
+        try:
+            with open(filename, "wb") as f:
+                f.write(data)
+
+            QMessageBox.information(self, "Save Scene As glTF", "Successfully saved model data: " + filename)
+
+        except Exception as e:
+            QMessageBox.warning(self, "Failed to save model data.", str(e))
 
     def loadSettings(self, filename=None):
         # open file dialog if filename is not specified
@@ -524,7 +564,6 @@ class Q3DWindow(QMainWindow):
         self.ui.treeView.addLayer(layer)
 
     def reloadPage(self):
-        self.clearConsole()
         self.webPage.reload()
 
     # View menu
@@ -568,7 +607,7 @@ class Q3DWindow(QMainWindow):
         QDesktopServices.openUrl(QUrl("https://github.com/minorua/Qgis2threejs/issues"))
 
     def about(self):
-        QMessageBox.information(self, "Qgis2threejs Plugin", "Plugin version: {0}".format(PLUGIN_VERSION), QMessageBox.Ok)
+        QMessageBox.information(self, PLUGIN_NAME, "Plugin version: {0}".format(PLUGIN_VERSION))
 
     # Dev menu
     def runTest(self):
@@ -599,9 +638,13 @@ class PropertiesDialog(QDialog):
         self.restoreGeometry(settings.value("/Qgis2threejs/propdlg/geometry", b""))
 
     def closeEvent(self, event):
-        # save dialog geometry
-        settings = QSettings()
-        settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
+        try:
+            # save dialog geometry
+            settings = QSettings()
+            settings.setValue("/Qgis2threejs/propdlg/geometry", self.saveGeometry())
+        except:
+            pass
+
         QDialog.closeEvent(self, event)
 
     def setLayer(self, layer):

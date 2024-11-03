@@ -15,7 +15,7 @@ from qgis.core import Qgis, QgsMapLayer, QgsProject, QgsWkbTypes
 
 from .geometry import GridGeometry
 from .q3dconst import LayerType
-from .tools import logMessage
+from .utils import logMessage
 
 
 class MapTo3D:
@@ -143,7 +143,7 @@ class GDALDEMProvider:
         self.ds = gdal.Open(filename_utf8, gdal.GA_ReadOnly)
 
         if self.ds is None:
-            logMessage("Cannot open file: " + filename)
+            logMessage("Cannot open file: " + filename, error=True)
             self.ds = self.mem_driver.Create("", 1, 1, 1, gdal.GDT_Float32)
 
         self.width = self.ds.RasterXSize

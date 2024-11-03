@@ -6,20 +6,13 @@
 import os
 
 from PyQt5.QtCore import Qt, QSize, QUrl
-from PyQt5.QtGui import QImage, QPainter
-from PyQt5.QtWidgets import QDialog, QMessageBox, QVBoxLayout
+from PyQt5.QtGui import QDesktopServices, QImage, QPainter
+from PyQt5.QtWidgets import QDialog, QVBoxLayout
 
-from .conf import DEBUG_MODE, PLUGIN_NAME
-try:
-    from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
-    from PyQt5.QtWebKitWidgets import QWebPage, QWebView
-    if DEBUG_MODE:
-        from PyQt5.QtWebKitWidgets import QWebInspector
-except ModuleNotFoundError:
-    if os.name == "posix":
-        QMessageBox.warning(None, PLUGIN_NAME, 'Missing dependencies related to PyQt5 and QtWebKit. Please install "python3-pyqt5.qtwebkit" package (Debian/Ubuntu) before using this plugin.')
-    raise
+from PyQt5.QtWebKit import QWebSettings, QWebSecurityOrigin
+from PyQt5.QtWebKitWidgets import QWebInspector, QWebPage, QWebView
 
+from .conf import DEBUG_MODE
 from .q3dwebviewcommon import Q3DWebPageCommon, Q3DWebViewCommon
 
 
@@ -31,9 +24,12 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
 
         self.isWebEnginePage = False
 
-    def setup(self, settings, wnd=None, exportMode=False):
+    def url(self):
+        return self.mainFrame().url()
+
+    def setup(self, settings, wnd=None):
         """wnd: Q3DWindow or None (off-screen mode)"""
-        Q3DWebPageCommon.setup(self, settings, wnd, exportMode)
+        Q3DWebPageCommon.setup(self, settings, wnd)
 
         self.mainFrame().javaScriptWindowObjectCleared.connect(self.addJSObject)
 
@@ -41,6 +37,9 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         origin = self.mainFrame().securityOrigin()
         origin.addAccessWhitelistEntry("http:", "*", QWebSecurityOrigin.AllowSubdomains)
         origin.addAccessWhitelistEntry("https:", "*", QWebSecurityOrigin.AllowSubdomains)
+
+        self.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        self.linkClicked.connect(QDesktopServices.openUrl)
 
         # if self.offScreen:
         #     # transparent background
@@ -56,7 +55,7 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
     def addJSObject(self):
         self.mainFrame().addToJavaScriptWindowObject("pyObj", self.bridge)
         if DEBUG_MODE:
-            self.wnd.printConsoleMessage("pyObj added", sourceID="q3dview.py")
+            self.logToConsole("pyObj added")
 
     def reload(self):
         Q3DWebPageCommon.reload(self)
@@ -76,7 +75,14 @@ class Q3DWebKitPage(Q3DWebPageCommon, QWebPage):
         return result
 
     def sendData(self, data):
-        self.runScript("loadJSONObject(pyData())", data, message=None)
+        string = "loadJSONObject(pyData())"
+        if DEBUG_MODE:
+            self.logToConsole(string)
+
+        self.runScript(string, data, message=None)
+
+    def logToConsole(self, message, level="debug"):
+        self.mainFrame().evaluateJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
 
     def renderImage(self, width, height, callback):
         old_size = self.viewportSize()
@@ -99,20 +105,21 @@ class Q3DWebKitView(Q3DWebViewCommon, QWebView):
         Q3DWebViewCommon.__init__(self)
 
         self._page = Q3DWebKitPage(self)
+        self._page.setObjectName("webKitPage")
         self.setPage(self._page)
 
         # security setting for billboard, model file and point cloud layer
         self.settings().setAttribute(QWebSettings.LocalContentCanAccessRemoteUrls, True)
 
         # web inspector setting
-        if DEBUG_MODE:
-            self.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+        self.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
 
-    def showInspector(self):
+    def showDevTools(self):
         dlg = QDialog(self)
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
         dlg.setWindowTitle("Qgis2threejs Web Inspector")
+        dlg.rejected.connect(self.devToolsClosed)
 
         wi = QWebInspector(dlg)
         wi.setPage(self._page)

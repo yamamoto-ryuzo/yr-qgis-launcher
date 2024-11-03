@@ -5,8 +5,8 @@
 
 import os
 
-from PyQt5.QtCore import Qt, QEventLoop, QSize, QTimer, QUrl
-from PyQt5.QtGui import QImage, QPainter
+from PyQt5.QtCore import Qt, QEventLoop, QTimer, QUrl, pyqtSignal
+from PyQt5.QtGui import QDesktopServices, QImage, QPainter
 from PyQt5.QtWidgets import QDialog, QVBoxLayout
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
@@ -28,15 +28,17 @@ def setChromiumFlags():
 
 class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
 
+    jsErrorWarning = pyqtSignal(bool)       # bool: is_error
+
     def __init__(self, parent=None):
         QWebEnginePage.__init__(self, parent)
         Q3DWebPageCommon.__init__(self)
 
         self.isWebEnginePage = True
 
-    def setup(self, settings, wnd=None, exportMode=False):
+    def setup(self, settings, wnd=None):
         """wnd: Q3DWindow or None (off-screen mode)"""
-        Q3DWebPageCommon.setup(self, settings, wnd, exportMode)
+        Q3DWebPageCommon.setup(self, settings, wnd)
 
         self.channel = QWebChannel(self)
         self.channel.registerObject("bridge", self.bridge)
@@ -94,8 +96,20 @@ class Q3DWebEnginePage(Q3DWebPageCommon, QWebEnginePage):
     def sendData(self, data):
         self.bridge.sendScriptData.emit("loadJSONObject(pyData())", data)
 
+    def logToConsole(self, message, level="debug"):
+        self.runJavaScript('console.{}("{}");'.format(level, message.replace('"', '\\"')))
+
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
+        if level in (QWebEnginePage.WarningMessageLevel, QWebEnginePage.ErrorMessageLevel):
+            self.jsErrorWarning.emit(bool(level == QWebEnginePage.ErrorMessageLevel))
+
         Q3DWebPageCommon.javaScriptConsoleMessage(self, message, lineNumber, sourceID)
+
+    def acceptNavigationRequest(self, url, type, isMainFrame):
+        if type == QWebEnginePage.NavigationTypeLinkClicked:
+            QDesktopServices.openUrl(url)
+            return False
+        return True
 
 
 class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
@@ -107,13 +121,19 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
         Q3DWebViewCommon.__init__(self)
 
         self._page = Q3DWebEnginePage(self)
+        self._page.setObjectName("webEnginePage")
         self.setPage(self._page)
 
-    def showInspector(self):
-        dlg = QDialog(self)
+    def showDevTools(self):
+        if self._page.devToolsPage():
+            self.dlg.activateWindow()
+            return
+
+        dlg = self.dlg = QDialog(self)
         dlg.setAttribute(Qt.WA_DeleteOnClose)
         dlg.resize(800, 500)
-        dlg.setWindowTitle("Qgis2threejs Web Inspector")
+        dlg.setWindowTitle("Qgis2threejs Developer Tools")
+        dlg.rejected.connect(self.devToolsClosed)
 
         ins = QWebEngineView(dlg)
         self._page.setDevToolsPage(ins.page())
@@ -124,6 +144,9 @@ class Q3DWebEngineView(Q3DWebViewCommon, QWebEngineView):
 
         dlg.setLayout(v)
         dlg.show()
+
+    def showGPUInfo(self):
+        self.load(QUrl("chrome://gpu"))
 
     # FIXME: unstable
     def renderImage(self, width, height, callback, wnd=None):

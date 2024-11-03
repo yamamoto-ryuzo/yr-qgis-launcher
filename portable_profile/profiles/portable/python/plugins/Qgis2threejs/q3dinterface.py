@@ -3,13 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # begin: 2018-11-09
 
-from PyQt5.QtCore import QObject, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from .conf import DEBUG_MODE
-from .tools import logMessage
+from .utils import logMessage
 
 
 class Q3DInterface(QObject):
+
+    # signals - iface to window
+    statusMessage = pyqtSignal(str, int)             # params: msg, timeout_ms
+    progressUpdated = pyqtSignal(int, str)           # params: percentage, msg
 
     def __init__(self, settings, webPage, parent=None):
         super().__init__(parent)
@@ -19,15 +22,9 @@ class Q3DInterface(QObject):
         self.enabled = True
 
     @pyqtSlot(dict)
-    def loadJSONObject(self, obj):
-        # display the content of the object in the debug element
-        if not self.enabled:
-            return
-
-        if DEBUG_MODE == 2:
-            self.runScript("document.getElementById('debug').innerHTML = '{}';".format(str(obj)[:500].replace("'", "\\'")))
-
-        self.webPage.sendData(obj)
+    def sendJSONObject(self, obj):
+        if self.enabled:
+            self.webPage.sendData(obj)
 
     @pyqtSlot(str, object, str)
     def runScript(self, string, data=None, message=""):
@@ -39,11 +36,7 @@ class Q3DInterface(QObject):
         if self.enabled:
             self.webPage.loadScriptFiles(ids, force)
 
-    # @pyqtSlot(str, int, bool)     # pyqtSlot override bug in PyQt5?
-    def showMessage(self, msg, _1=0, _2=False):
+    # @pyqtSlot(str, int)
+    def showStatusMessage(self, msg, _1=0):
         if self.enabled:
             logMessage(msg)
-
-    # @pyqtSlot(int, str)
-    def progress(self, percentage=100, msg=None):
-        pass

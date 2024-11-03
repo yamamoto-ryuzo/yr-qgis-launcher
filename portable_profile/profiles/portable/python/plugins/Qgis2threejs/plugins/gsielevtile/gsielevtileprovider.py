@@ -19,7 +19,7 @@ from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform
 
 from .downloader import Downloader
 from Qgis2threejs.geometry import GridGeometry
-from Qgis2threejs.tools import logMessage
+from Qgis2threejs.utils import logMessage
 
 TILE_SIZE = 256
 TSIZE1 = 20037508.342789244
@@ -37,7 +37,7 @@ class GSIElevTileProvider:
         self.crs3857 = QgsCoordinateReferenceSystem("EPSG:3857")
         self.dest_crs = QgsCoordinateReferenceSystem()
         if not self.dest_crs.createFromWkt(dest_wkt):
-            logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt))
+            logMessage("Failed to create CRS from WKT: {0}".format(dest_wkt), error=True)
         self.transform = QgsCoordinateTransform(self.dest_crs, self.crs3857, QgsProject.instance())
 
         # approximate bbox of this data
@@ -182,8 +182,9 @@ class GSIElevTileProvider:
         for url in urls:
             data = files.get(url)
             if data:
-                yield numpy.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=numpy.float32, sep=",").tostring()   # to byte array
+                array = numpy.fromstring(data.replace(b"e", NODATA_VALUE_BYTES).replace(b"\n", b","), dtype=numpy.float32, sep=",")
             else:
                 array = numpy.empty(TILE_SIZE * TILE_SIZE, dtype=numpy.float32)
                 array.fill(NODATA_VALUE)
-                yield array.tostring()
+
+            yield array.tobytes()

@@ -6,12 +6,13 @@
 from datetime import datetime
 import os
 
-from PyQt5.QtCore import Qt, QDir, QEventLoop, QTimer, pyqtSignal, qDebug
-from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QVBoxLayout
+from PyQt5.QtCore import QDir, QEventLoop, QTimer, pyqtSignal, qDebug
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from qgis.core import Qgis, QgsProject
 
 from .conf import DEBUG_MODE
 
-from .tools import hex_color, js_bool, logMessage, pluginDir
+from .utils import hex_color, js_bool, logMessage, pluginDir
 from .q3dconst import Script
 from .q3dwebbridge import Bridge
 
@@ -30,34 +31,37 @@ class Q3DWebPageCommon:
             # open log file
             self.logfile = open(pluginDir("q3dview.log"), "w")
 
-    def setup(self, settings, wnd=None, exportMode=False):
+    def setup(self, settings, wnd=None):
         """wnd: Q3DWindow or None (off-screen mode)"""
         self.expSettings = settings
-        self.wnd = wnd or DummyWindow()
+        self.wnd = wnd
         self.offScreen = bool(wnd is None)
-        self.exportMode = exportMode
 
         self.bridge = Bridge(self)
         self.bridge.initialized.connect(self.initialized)
         self.bridge.initialized.connect(self.ready)
         self.bridge.sceneLoaded.connect(self.sceneLoaded)
         self.bridge.sceneLoadError.connect(self.sceneLoadError)
-        self.bridge.modelDataReady.connect(self.saveModelData)
-        self.bridge.imageReady.connect(self.saveImage)
-        self.bridge.statusMessage.connect(self.wnd.showStatusMessage)
+        if wnd:
+            self.bridge.modelDataReady.connect(wnd.saveModelData)
+            self.bridge.imageReady.connect(wnd.saveImage)
+            self.bridge.statusMessage.connect(wnd.showStatusMessage)
+
+        if DEBUG_MODE:
+            self.bridge.slotCalled.connect(self.logToConsole)
 
         self.loadFinished.connect(self.pageLoaded)
 
     def reload(self):
-        self.wnd.showStatusMessage("Initializing preview...")
+        self.showStatusMessage("Initializing preview...")
 
     def pageLoaded(self, ok):
+        if self.url().scheme() != "file":
+            return
+
         self.loadedScripts = {}
 
         # configuration
-        if self.exportMode:
-            self.runScript("Q3D.Config.exportMode = true;")
-
         if self.expSettings.isOrthoCamera():
             self.runScript("Q3D.Config.orthoCamera = true;")
 
@@ -71,7 +75,10 @@ class Q3DWebPageCommon:
             self.runScript("Q3D.Config.navigation.enabled = false;")
 
         # call init()
-        self.runScript("init({}, {}, {})".format(js_bool(self.offScreen), DEBUG_MODE, js_bool(self.isWebEnginePage)))
+        self.runScript("init({}, {}, {}, {})".format(js_bool(self.offScreen),
+                                                     DEBUG_MODE,
+                                                     Qgis.QGIS_VERSION_INT,
+                                                     js_bool(self.isWebEnginePage)))
 
     def initialized(self):
         # labels
@@ -80,13 +87,22 @@ class Q3DWebPageCommon:
         if header or footer:
             self.runScript('setHFLabel(pyData())', data={"Header": header, "Footer": footer})
 
-        self.wnd.showStatusMessage("")
+        # crs check
+        if QgsProject.instance().crs().isGeographic():
+            self.showMessageBar("Current CRS is a geographic coordinate system. Please change it to a projected coordinate system.", warning=True)
+
+        self.showStatusMessage("")
 
     def runScript(self, string, data=None, message="", sourceID="q3dview.py", callback=None, wait=False):
         if not DEBUG_MODE or message is None:
             return
 
-        self.wnd.printConsoleMessage(message if message else string, sourceID=sourceID)
+        if sourceID:
+            text = "{}: {}".format(sourceID, message or string)
+        else:
+            text = message or string
+
+        self.logToConsole(text)
         qDebug("runScript: {}".format(message if message else string).encode("utf-8"))
 
         if DEBUG_MODE == 2:
@@ -125,7 +141,7 @@ class Q3DWebPageCommon:
         loading = self.runScript("app.loadingManager.isLoading")
 
         if DEBUG_MODE:
-            logMessage("waitForSceneLoaded: loading={}".format(loading), False)
+            logMessage("waitForSceneLoaded: loading={}".format(loading))
 
         if not loading:
             return False
@@ -158,41 +174,38 @@ class Q3DWebPageCommon:
             return {1: "error", 2: "canceled", 3: "timeout"}[err]
         return False
 
-    def saveModelData(self, data, filename):
-        try:
-            with open(filename, "wb") as f:
-                f.write(data)
-
-            logMessage("Successfully saved model data: " + filename, False)
-        except Exception as e:
-            QMessageBox.warning(self, "Failed to save model data.", str(e))
-
-    def saveImage(self, width, height, image):
-        filename, _ = QFileDialog.getSaveFileName(self.wnd, self.tr("Save As"), QDir.homePath(), "PNG files (*.png)")
-        if filename:
-            image.save(filename)
-
     def javaScriptConsoleMessage(self, message, lineNumber, sourceID):
-        self.wnd.printConsoleMessage(message, lineNumber, sourceID)
-
         if DEBUG_MODE == 2:
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.logfile.write("{} {} ({}: {})\n".format(now, message, sourceID, lineNumber))
             self.logfile.flush()
 
+    def showMessageBar(self, msg, timeout_ms=0, warning=False):
+        self.runScript("showMessageBar(pyData(), {}, {})".format(timeout_ms, js_bool(warning)), msg)
+
+    def showStatusMessage(self, message, timeout_ms=0):
+        self.bridge.statusMessage.emit(message, timeout_ms)
+
 
 class Q3DWebViewCommon:
+
+    devToolsClosed = pyqtSignal()
+    fileDropped = pyqtSignal(list)
 
     def __init__(self, _=None):
         self.setAcceptDrops(True)
 
     def setup(self, iface, settings, wnd=None, enabled=True):
         self.iface = iface
-        self.wnd = wnd
         self._enabled = enabled     # whether preview is enabled at start
 
         self._page.ready.connect(self.pageReady)
         self._page.setup(settings, wnd)
+
+    def teardown(self):
+        self._page.wnd = None
+        self._page.deleteLater()
+        self._page = None
 
     def pageReady(self):
         # start app
@@ -208,13 +221,7 @@ class Q3DWebViewCommon:
 
     def dropEvent(self, event):
         # logMessage(event.mimeData().formats())
-        for url in event.mimeData().urls():
-            filename = url.fileName()
-            if filename in ("cloud.js", "ept.json"):
-                self.wnd.addPointCloudLayer(url.toString())
-            else:
-                self.runScript("loadModel('{}')".format(url.toString()))
-
+        self.fileDropped.emit(event.mimeData().urls())
         event.acceptProposedAction()
 
     def sendData(self, data):
@@ -226,12 +233,3 @@ class Q3DWebViewCommon:
     def showJSInfo(self):
         info = self.runScript("app.renderer.info", wait=True)
         QMessageBox.information(self, "three.js Renderer Info", str(info))
-
-
-class DummyWindow:
-
-    def printConsoleMessage(self, message, lineNumber="", sourceID=""):
-        logMessage(message, False)
-
-    def showStatusMessage(self, message, duration=0):
-        logMessage(message, False)

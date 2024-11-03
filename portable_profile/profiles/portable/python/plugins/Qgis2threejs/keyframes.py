@@ -12,7 +12,7 @@ from qgis.core import Qgis, QgsApplication, QgsFieldProxyModel
 from .conf import DEBUG_MODE, DEF_SETS, PLUGIN_NAME
 from .q3dconst import DEMMtlType, LayerType, ATConst
 from .q3dcore import Layer
-from .tools import createUid, selectImageFile, js_bool, logMessage, parseInt, pluginDir
+from .utils import createUid, selectImageFile, js_bool, logMessage, parseInt, pluginDir
 from .ui.animationpanel import Ui_AnimationPanel
 from .ui.keyframedialog import Ui_KeyframeDialog
 
@@ -116,13 +116,13 @@ class AnimationPanel(QWidget):
                     dataList.append(data)
 
         msg = ""
-        duration = 5000
+        timeout_ms = 5000
         if self._warnings:
             msg = "Animation warning{}:<br><ul>".format("s" if len(self._warnings) > 1 else "")
             for w in self._warnings:
                 msg += "<li>" + w + "</li>"
             msg += "</ul>"
-            duration = 0
+            timeout_ms = 0
 
         if len(dataList):
             if DEBUG_MODE:
@@ -139,7 +139,7 @@ class AnimationPanel(QWidget):
             self.ui.toolButtonPlay.setChecked(False)
 
         if msg:
-            self.wnd.showMessageBar(msg, duration, warning=True)
+            self.wnd.webPage.showMessageBar(msg, timeout_ms, warning=True)
 
     def _updateLayer(self, layer, groupType):
         if groupType in (ATConst.ITEM_GRP_TEXTURE, ATConst.ITEM_TEXTURE):
@@ -909,7 +909,7 @@ class AnimationTreeWidget(QTreeWidget):
                 if mtl:
                     item.setText(0, mtl["name"])
                 else:
-                    logMessage("The material '{}' was removed.".format(item.text(0)), warning=False)
+                    logMessage("The material '{}' was removed.".format(item.text(0)))
                     group.removeChild(item)
 
 
