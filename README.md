@@ -76,7 +76,7 @@ https://github.com/sourcepole/qgis-instantprint-plugin
 https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint  
 ### 簡易印刷
 公式プラグインではないため、下記リポジトリからダウンロードください。  
-https://github.com/yamamoto-ryuzo/yr-qgis-easyprint
+https://github.com/yamamoto-ryuzo/easyprint-feature-qgis3  
 ### (保留中)
 https://github.com/Orbitalnet-incs/meshprint  
 ## レイヤー管理
@@ -106,13 +106,11 @@ https://github.com/opengisch/qgis_excel_sync
 https://github.com/camptocamp/QGIS-SpreadSheetLayers  
 ### MOJXML Loader
 https://github.com/MIERUNE/qgis-mojxml-plugin  
-## 開発 (追加予定)   
-### Plugin Builder 3  
+## 開発 
+### Plugin Builder 3  (追加予定)  
 https://github.com/g-sherman/Qgis-Plugin-Builder  
 ### Plugin Reloader
 https://github.com/borysiasty/plugin_reloader  
-### debugvs  
-https://github.com/lmotta/debug_vs_plugin  
 ## その他
 ### Select Themes
 https://github.com/Amphibitus/selectThemes  
