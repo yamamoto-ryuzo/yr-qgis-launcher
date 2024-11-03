@@ -122,10 +122,5 @@ https://github.com/yamamoto-ryuzo/QGIS-legendView
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
 #### ・補足事項  
     .BATの改行コードをWindows用にするため　.gitattributes　を設置    
-    
-    バージョンについて    
-    VA.B.C  例（V1.2.3　　A=1、B=2,C=3）  
-     A:QGISのバージョンアップに伴う、本体の修正  
-     B:UIの変更（プラグインの追加等含む）、本体の機能追加  
-     C:プロファイル・プラグイン、本体の修正  
+
     
