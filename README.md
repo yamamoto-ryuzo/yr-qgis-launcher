@@ -25,7 +25,7 @@
 
   ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。  
   [システム　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/releases/tag/v1.0.0)  
-  [システム　一式 ポータブル版ver3.38.1含む](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)  
+  [システム　一式 ポータブル版QGISver3.38.1含む](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)  
 
 ## QGISランチャーコンセプト
 
@@ -92,17 +92,27 @@ https://bitbucket.org/janzandr/zoomview/src/master/
 https://github.com/3liz/lizmap-plugin  
 ### qgis2web
 https://github.com/qgis2web/qgis2web  
+## 3D関連  
 ### Qgis2threejs
 https://github.com/minorua/Qgis2threejs  
-## データ連携
+### QuickDEM4JP  
+https://github.com/MIERUNE/QuickDEM4JP  
 ### PLATEAU QGIS Plugin
 https://github.com/Project-PLATEAU/plateau-qgis-plugin  
+## データ連携
 ### ExcelSync
 https://github.com/opengisch/qgis_excel_sync  
 ### Spreadsheet Layers
 https://github.com/camptocamp/QGIS-SpreadSheetLayers  
 ### MOJXML Loader
 https://github.com/MIERUNE/qgis-mojxml-plugin  
+## 開発 (追加予定)   
+### Plugin Builder 3  
+https://github.com/g-sherman/Qgis-Plugin-Builder  
+### Plugin Reloader
+https://github.com/borysiasty/plugin_reloader  
+### debugvs  
+https://github.com/lmotta/debug_vs_plugin  
 ## その他
 ### Select Themes
 https://github.com/Amphibitus/selectThemes  
@@ -110,5 +120,7 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-#### ・補足事項
-    .BATの改行コードをWindows用にするため　.gitattributes　を設置  
+#### ・補足事項  
+    .BATの改行コードをWindows用にするため　.gitattributes　を設置    
+
+    
