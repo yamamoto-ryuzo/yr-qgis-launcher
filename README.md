@@ -116,7 +116,7 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-### ImportPhotos  
+### ImportPhotos (予定)  
 https://github.com/KIOS-Research/ImportPhotos/  
 #### ・補足事項  
     .BATの改行コードをWindows用にするため　.gitattributes　を設置    
