@@ -107,8 +107,6 @@ https://github.com/camptocamp/QGIS-SpreadSheetLayers
 ### MOJXML Loader
 https://github.com/MIERUNE/qgis-mojxml-plugin  
 ## 開発 
-### Plugin Builder 3  (追加予定)  
-https://github.com/g-sherman/Qgis-Plugin-Builder  
 ### Plugin Reloader
 https://github.com/borysiasty/plugin_reloader  
 ## その他
@@ -118,6 +116,8 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
+### ImportPhotos  
+https://github.com/KIOS-Research/ImportPhotos/  
 #### ・補足事項  
     .BATの改行コードをWindows用にするため　.gitattributes　を設置    
 
