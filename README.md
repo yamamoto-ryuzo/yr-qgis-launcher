@@ -116,9 +116,9 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-### Layers menu from project(予定)    
+### Layers menu from project    
 https://github.com/aeag/MenuFromProject-Qgis-Plugin  
-### ImportPhotos (予定)  
+### ImportPhotos  
 https://github.com/KIOS-Research/ImportPhotos/  
 #### ・補足事項  
     .BATの改行コードをWindows用にするため　.gitattributes　を設置    
