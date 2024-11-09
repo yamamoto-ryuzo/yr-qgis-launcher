@@ -72,7 +72,7 @@ https://github.com/yamamoto-ryuzo/GEO-search-plugin
 ### Instant Print
 https://github.com/sourcepole/qgis-instantprint-plugin  
 ### easyinstantprint  
-公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。
+公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。  
 https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint  
 ### 簡易印刷
 公式プラグインではないため、下記リポジトリからダウンロードください。  
@@ -109,13 +109,15 @@ https://github.com/MIERUNE/qgis-mojxml-plugin
 ## 開発 
 ### Plugin Reloader
 https://github.com/borysiasty/plugin_reloader  
-## その他
+## その他  
 ### Select Themes
 https://github.com/Amphibitus/selectThemes  
 ### QGIS-legendView
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
+### Layers menu from project(予定)    
+https://github.com/aeag/MenuFromProject-Qgis-Plugin  
 ### ImportPhotos (予定)  
 https://github.com/KIOS-Research/ImportPhotos/  
 #### ・補足事項  
