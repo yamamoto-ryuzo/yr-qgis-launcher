@@ -19,15 +19,10 @@ from qgis.core import (
     QgsLayoutPoint,
     QgsLayoutSize,
     QgsUnitTypes,
-    QgsScaleBarSettings,
-    Qgis,
 )
 
 from . import utils
 
-# バージョンの確認
-def get_qgis_version():
-    return Qgis.QGIS_VERSION_INT
 
 # from myToolBar import MyToolBar
 # TODO: ScaleBarとどうように他のアイテム追加部分を関数に分離する
@@ -815,16 +810,7 @@ class CreateSimpleMap:
 
         # Sizeを固定にし、値のみを変化させる
         scaleBar.setMaximumBarWidth(offset_x - self.margin_left)
-
-        #　バージョンの取得
-        qgis_version = get_qgis_version()
-        print(f"QGISのバージョン: {qgis_version}")
-        if qgis_version >= 34000:  # QGIS 3.4以降
-            # QGIS 3.4以降の処理
-            scaleBar.setSegmentSizeMode(QgsScaleBarSettings.SegmentSizeMode.FitWidth)
-        else:
-            # QGIS 3.4より前の処理
-            scaleBar.setSegmentSizeMode(1)
+        scaleBar.setSegmentSizeMode(1)
         scaleBar.setId("スケールバー")
         scaleBar.update()
 
