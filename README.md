@@ -116,8 +116,6 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-### Layers menu from project    
-https://github.com/aeag/MenuFromProject-Qgis-Plugin  
 ### ImportPhotos  
 https://github.com/KIOS-Research/ImportPhotos/  
 #### ・補足事項  
