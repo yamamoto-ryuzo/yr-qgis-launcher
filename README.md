@@ -61,63 +61,63 @@
 ![image](https://github.com/yamamoto-ryuzo/yr-qgis-portable-launcher2/assets/86514652/177ffbe3-654d-4d22-9f70-add09bcf0323)
 
 ## 統一環境として組込済のプラグイン
-### MMQGIS
-[https://plugins.qgis.org/plugins/mmqgis/#plugin-about ](https://michaelminn.com/linux/mmqgis/)
-### 検索
-### Search Layers
+### ・検索
+#### Search Layers
 https://github.com/NationalSecurityAgency/qgis-searchlayers-plugin  
-### GEO_search
+#### GEO_search
 https://github.com/yamamoto-ryuzo/GEO-search-plugin  
-## 印刷
-### Instant Print
+### ・印刷
+#### Instant Print
 https://github.com/sourcepole/qgis-instantprint-plugin  
-### easyinstantprint  
+#### easyinstantprint  
 公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。  
 https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint  
-### 簡易印刷
+#### 簡易印刷
 公式プラグインではないため、下記リポジトリからダウンロードください。  
 https://github.com/yamamoto-ryuzo/easyprint-feature-qgis3  
-### (保留中)
+#### (保留中)
 https://github.com/Orbitalnet-incs/meshprint  
-## レイヤー管理
-### Layers menu from project
+### レイヤー管理
+#### Layers menu from project
 https://github.com/xcaeag/MenuFromProject-Qgis-Plugin  
-## 画面
-### ZoomView
+### ・画面
+#### ZoomView
 https://bitbucket.org/janzandr/zoomview/src/master/  
-## WEB連携
-### Street View
+### WEB連携
+#### Street View
 リポジトリなし  
-### Lizmap
+#### Lizmap
 https://github.com/3liz/lizmap-plugin  
-### qgis2web
+#### qgis2web
 https://github.com/qgis2web/qgis2web  
-## 3D関連  
-### Qgis2threejs
+### 3D関連  
+#### Qgis2threejs
 https://github.com/minorua/Qgis2threejs  
-### QuickDEM4JP  
+#### QuickDEM4JP  
 https://github.com/MIERUNE/QuickDEM4JP  
-### PLATEAU QGIS Plugin
+#### PLATEAU QGIS Plugin
 https://github.com/Project-PLATEAU/plateau-qgis-plugin  
-## データ連携
-### ExcelSync
+### ・データ連携
+#### ExcelSync
 https://github.com/opengisch/qgis_excel_sync  
-### Spreadsheet Layers
+#### Spreadsheet Layers
 https://github.com/camptocamp/QGIS-SpreadSheetLayers  
-### MOJXML Loader
+#### MOJXML Loader
 https://github.com/MIERUNE/qgis-mojxml-plugin  
-## 開発 
-### Plugin Reloader
+### ・開発 
+#### Plugin Reloader
 https://github.com/borysiasty/plugin_reloader  
-## その他  
-### Select Themes
+### ・その他  
+#### Select Themes
 https://github.com/Amphibitus/selectThemes  
-### QGIS-legendView
+#### QGIS-legendView
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
-### EasyAttributeFilter
+#### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-### ImportPhotos  
+#### ImportPhotos  
 https://github.com/KIOS-Research/ImportPhotos/  
+#### MMQGIS
+[https://plugins.qgis.org/plugins/mmqgis/#plugin-about ](https://michaelminn.com/linux/mmqgis/)  
 #### ・補足事項  
     .BATの改行コードをWindows用にするため　.gitattributes　を設置    
 
