@@ -25,7 +25,7 @@
 
   ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。  
   [システム　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/releases/tag/v1.0.0)  
-  [システム　一式 ポータブル版QGISver3.38.1含む](https://1drv.ms/u/c/cbbfeab49e70546f/EYyJqLhVbXNFufPDmemiWhABSOS7PdZqyGN_K_YfKuRKIg?e=N0973F)  
+  [システム　一式 ポータブル版QGISver3.40.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwBjvGbzWgQOB32wNkI3fa2jA?e=bO8S1W)  
 
 ## QGISランチャーコンセプト
 
@@ -116,9 +116,7 @@ https://github.com/Amphibitus/selectThemes
 https://github.com/yamamoto-ryuzo/QGIS-legendView  
 ### EasyAttributeFilter
 https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-### Layers menu from project(予定)    
-https://github.com/aeag/MenuFromProject-Qgis-Plugin  
-### ImportPhotos (予定)  
+### ImportPhotos  
 https://github.com/KIOS-Research/ImportPhotos/  
 #### ・補足事項  
     .BATの改行コードをWindows用にするため　.gitattributes　を設置    
