@@ -77,20 +77,20 @@ https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint
 https://github.com/yamamoto-ryuzo/easyprint-feature-qgis3  
 #### (保留中)
 https://github.com/Orbitalnet-incs/meshprint  
-### レイヤー管理
+### ・レイヤー管理
 #### Layers menu from project
 https://github.com/xcaeag/MenuFromProject-Qgis-Plugin  
 ### ・画面
 #### ZoomView
 https://bitbucket.org/janzandr/zoomview/src/master/  
-### WEB連携
+### ・WEB連携
 #### Street View
 リポジトリなし  
 #### Lizmap
 https://github.com/3liz/lizmap-plugin  
 #### qgis2web
 https://github.com/qgis2web/qgis2web  
-### 3D関連  
+### ・3D関連  
 #### Qgis2threejs
 https://github.com/minorua/Qgis2threejs  
 #### QuickDEM4JP  
