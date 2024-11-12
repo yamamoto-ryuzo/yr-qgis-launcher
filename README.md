@@ -107,6 +107,8 @@ https://github.com/MIERUNE/qgis-mojxml-plugin
 ### ・開発 
 #### Plugin Reloader
 https://github.com/borysiasty/plugin_reloader  
+#### qpip（予定）
+https://github.com/opengisch/qpip  
 ### ・その他  
 #### Select Themes
 https://github.com/Amphibitus/selectThemes  
