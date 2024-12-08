@@ -52,11 +52,36 @@
       "point_letter__65d4840b_d16a_4a0b_a5f0_e1ab9abd8cf1": {
         "enabled": true,
         "groups": []
+      },
+      "pointcloud_2_ground_extraction_1776364481347070_copc_a6d19f39_59eb_4aad_a239_90ee878ec075": {
+        "enabled": true,
+        "groups": []
       }
     },
     "repeat": false
   },
   "LAYERS": [
+    {
+      "geomType": 4,
+      "layerId": "pointcloud_2_ground_extraction_1776364481347070_copc_a6d19f39_59eb_4aad_a239_90ee878ec075",
+      "name": "pointcloud_2-ground-extraction-1776364481347070.copc",
+      "properties": {
+        "checkBox_BoxVisible": false,
+        "checkBox_Clickable": true,
+        "checkBox_Visible": true,
+        "colorButton_Color": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "comboBox_ColorType": "POINT_INDEX",
+        "lineEdit_Name": "",
+        "spinBox_Opacity": 100,
+        "url": "file:///C:/Users/ryu/Downloads/ept_pointcloud_2-ground-extraction-1776364481347070.copc/ept.json"
+      },
+      "visible": true
+    },
     {
       "geomType": 1,
       "layerId": "DM_C_e155b9a9_9c15_4ad6_bed8_60341174445f",

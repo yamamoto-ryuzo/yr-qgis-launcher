@@ -1,0 +1,5 @@
+version = 1.2.3
+main_data_path = C:\github\yr-qgis-launcher
+local_path = C:\QGIS
+folder = \
+folder = /ini
