@@ -1,21 +1,35 @@
 import os
 import filecmp
 import subprocess
+import shutil
+import sys
+
+# pythonコンソールの文字化け対策
+# chcp 65001を実行
+subprocess.run('chcp 65001', shell=True, check=True)
+# 標準出力のエンコーディングを設定
+sys.stdout.reconfigure(encoding='utf-8')
 
 def read_version_file(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='utf-8') as f:
         content = f.readlines()
     data = {}
     folders = []
+    # 【重要】invalid_charsによる文字列処理は必ず必要、削除しないように！
+    # 　　　　削除により、ルートフォルダ全体がロボコピーされるなどOS全体に及ぶ重大なエラーとなる
+    invalid_chars = '\\/*?:"<>|'
     for line in content:
+        line = line.strip()
+        if line.startswith('#') or not line:  # コメントまたは空行をスキップ
+            continue
         if '=' in line:
-            key, value = line.strip().split('=')
+            key, value = line.split('=', 1)
             key = key.strip()
             value = value.strip()
             if key == 'folder':
-                # 【重要】この処理は必ず必要、削除しないように！
-                # 　　　　削除により、ルートフォルダ全体がロボコピーされるなど重大なエラ
-                value = value.lstrip('\\/*?:"<>|')
+                # 先頭に無効な文字がある場合のみ削除
+                if any(value.startswith(char) for char in invalid_chars):
+                    value = value.lstrip(invalid_chars)
                 folders.append(value)
             else:
                 data[key] = value
@@ -35,13 +49,13 @@ def compare_version_files(main_path, local_path):
 def display_absolute_paths(main_data_path, local_path, folders):
     print("\nロボコピーの対象フォルダー（絶対パス）:")
     for folder in folders:
-        source_folder = os.path.join(os.path.join(main_data_path, folder))
-        local_folder = os.path.join(os.path.join(local_path, folder))
+        source_folder = os.path.join(main_data_path, folder)
+        local_folder = os.path.join(local_path, folder)
         print(f"ソース: {source_folder}")
         print(f"コピー先: {local_folder}")
         print("---")
 
-
+#=============ロボコピー関数=================
 def robocopy_folders(source_path, local_path, folder):
     source_folder = os.path.normpath(os.path.join(source_path, folder))
     local_folder = os.path.normpath(os.path.join(local_path, folder))
@@ -56,15 +70,19 @@ def robocopy_folders(source_path, local_path, folder):
         "/E",
         "/R:3",
         "/W:10",
-        "/MT:8"
+        "/MT:8",
+        "/UNILOG:NUL",
+        "/TEE"
     ]
     
-    result = subprocess.run(command, capture_output=True, text=True)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', errors='replace')
+    
+    stdout, stderr = process.communicate()
     
     print(f"\n{folder}のコピー結果:")
-    print(result.stdout)
-    if result.stderr:
-        print("エラー:", result.stderr)
+    print(stdout)
+    if stderr:
+        print("エラー:", stderr)
     print("---")
 
 def main():
@@ -92,8 +110,10 @@ def main():
         print("\nversion.txtファイルの内容が異なります。")
         print("ロボコピーを実行します。")
         for folder in folders:
-            print(f"変更対象フォルダ: {', '.join(folders)}")
-            # robocopy_folders(main_data_path, local_path, folder)
+            # =================ロボコピー呼び出しはここ==========================
+            robocopy_folders(main_data_path, local_path, folder)
+        print("main_data_pathをlocal_pathにコピーします。")
+        shutil.copy2(os.path.join(main_data_path, version_file), local_path)
     else:
         print("\nversion.txtファイルの内容が同じです。ロボコピーは不要です。")
 

@@ -1,5 +1,19 @@
-version = 1.2.3
+version = 20241208
+
+#システムを複数人で共有有する場合のフォルダ（基本ネットワークフォルダ）
 main_data_path = C:\github\yr-qgis-launcher
+
+#実際にインストールフォルダ
 local_path = C:\QGIS
-folder = \
-folder = /ini
+
+#システム全体の更新
+#folder =
+
+#プロファイルの更新
+#folder = portable_profile\profiles\
+
+#プロジェクトの更新
+#folder = ProjectFiles
+
+#データの更新
+#folder = ProjectFiles\data
