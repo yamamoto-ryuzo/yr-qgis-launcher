@@ -4,6 +4,9 @@ import subprocess
 import shutil
 import sys
 
+import tkinter as tk
+from tkinter import messagebox
+
 # pythonコンソールの文字化け対策
 # chcp 65001を実行
 subprocess.run('chcp 65001', shell=True, check=True)
@@ -20,7 +23,8 @@ def read_version_file(file_path):
     invalid_chars = '\\/*?:"<>|'
     for line in content:
         line = line.strip()
-        if line.startswith('#') or not line:  # コメントまたは空行をスキップ
+        # コメントまたは空行をスキップ
+        if line.startswith('#') or not line:
             continue
         if '=' in line:
             key, value = line.split('=', 1)
@@ -55,14 +59,14 @@ def display_absolute_paths(main_data_path, local_path, folders):
         print(f"コピー先: {local_folder}")
         print("---")
 
-#=============ロボコピー関数=================
 def robocopy_folders(source_path, local_path, folder):
     source_folder = os.path.normpath(os.path.join(source_path, folder))
     local_folder = os.path.normpath(os.path.join(local_path, folder))
     print(f"\nロボコピー実行中:")
     print(f"ソース: {source_folder}")
     print(f"コピー先: {local_folder}")
-    
+    # メッセージを表示
+    messagebox.showerror("QGISシステム配信", f"サーバ {source_folder}\nクライアント: {local_folder}")
     command = [
         "robocopy",
         source_folder,
@@ -95,6 +99,7 @@ def main():
     version = data.get('version')
     main_data_path = data.get('main_data_path')
     local_path = data.get('local_path')
+    # 複数フォルダに対応
     folders = data.get('folders', [])
 
     print(f"バージョン: {version}")
@@ -105,17 +110,26 @@ def main():
     # ロボコピーの対象フォルダーを絶対パスで表示
     display_absolute_paths(main_data_path, local_path, folders)
 
-    # ファイルの内容を比較
-    if compare_version_files(main_data_path, local_path):
-        print("\nversion.txtファイルの内容が異なります。")
-        print("ロボコピーを実行します。")
-        for folder in folders:
-            # =================ロボコピー呼び出しはここ==========================
-            robocopy_folders(main_data_path, local_path, folder)
-        print("main_data_pathをlocal_pathにコピーします。")
-        shutil.copy2(os.path.join(main_data_path, version_file), local_path)
+    # local_pathのフォルダが存在するか確認
+    if os.path.exists(local_path) and os.path.isdir(local_path):
+        # local_pathのフォルダが存在する場合
+        # ファイルの内容を比較
+        if compare_version_files(main_data_path, local_path):
+            print("\nversion.txtファイルの内容が異なります。")
+            print("ロボコピーを実行します。")
+            for folder in folders:
+                robocopy_folders(main_data_path, local_path, folder)
+            print("main_data_pathをlocal_pathにコピーします。")
+            shutil.copy2(os.path.join(main_data_path, version_file), local_path)
+        else:
+            print("\nversion.txtファイルの内容が同じです。ロボコピーは不要です。")
     else:
-        print("\nversion.txtファイルの内容が同じです。ロボコピーは不要です。")
+        # local_pathのフォルダが存在しない場合
+        print("初期インストールを開始します。")
+        robocopy_folders(main_data_path, local_path, '')
 
 if __name__ == "__main__":
+    # tkinterのルートウィンドウを作成（必要に応じて）
+    root = tk.Tk()
+    root.withdraw()  # メインウィンドウを非表示にする
     main()

@@ -6,6 +6,7 @@ main_data_path = C:\github\yr-qgis-launcher
 #実際にインストールフォルダ
 local_path = C:\QGIS
 
+# =========以下を更新に合わせて修正==============
 #システム全体の更新
 #folder =
 
@@ -17,3 +18,7 @@ local_path = C:\QGIS
 
 #データの更新
 #folder = ProjectFiles\data
+
+#テスト更新
+folder = ini
+
