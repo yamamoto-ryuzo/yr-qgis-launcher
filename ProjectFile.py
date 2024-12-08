@@ -319,10 +319,10 @@ def main():
     # 標準のプロファイルは「portable」 
     if qgis_project_file is None:
         # 引数がない場合は新しい空のプロジェクトでQGISを起動
-        subprocess.Popen([exeQGIS,'--globalsettingsfile' , setting ,'--customizationfile' , customUI , '--profiles-path' , portable_profile_path , '--profile', 'portable','--code', '../processing/scripts/startup.py'])
+        subprocess.Popen([exeQGIS,'--globalsettingsfile' , setting ,'--customizationfile' , customUI , '--profiles-path' , portable_profile_path , '--profile', 'portable','--code', '../processing/scripts/startup.py'], shell=True)
     else:
         # 引数がある場合は指定されたプロジェクトファイルを開く
-        subprocess.Popen([exeQGIS,'--globalsettingsfile' , setting ,'--customizationfile' , customUI , '--profiles-path' , portable_profile_path , '--profile', 'portable','--code', '../processing/scripts/startup.py' , '--project' , qgis_project_file])
+        subprocess.Popen([exeQGIS,'--globalsettingsfile' , setting ,'--customizationfile' , customUI , '--profiles-path' , portable_profile_path , '--profile', 'portable','--code', '../processing/scripts/startup.py' , '--project' , qgis_project_file], shell=True)
 
 
 if __name__ == "__main__":
