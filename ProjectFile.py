@@ -278,7 +278,7 @@ def main():
         shutil.copytree(source_path, portable_profile_path, dirs_exist_ok=True)
         print(f"profilesフォルダを初期化完了しました：{portable_profile_path}")
  
-    if selected_version == 'install':
+    if selected_version == 'インストール版':
         ######################
         # インストール版の起動 #
         #####################

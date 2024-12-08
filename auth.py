@@ -63,7 +63,7 @@ def create_login_window():
 
         entered_username = username_entry.get()
         entered_password = password_entry.get()
-        selected_version = version_var.get()
+        selected_version = version_combo.get()
         selected_profile = profile_combo.get()
         
         try:
@@ -102,6 +102,23 @@ def create_login_window():
         password_entry.delete(0, tk.END)
         username_entry.focus()
 
+    def get_qgis_versions():
+        versions = []
+        
+        # インストール版の確認
+        install_path = get_associated_app('qgs')
+        if install_path:
+            print(f"インストール版が見つかりました：{install_path}")
+            versions.append('インストール版')
+        
+        # ポータブル版の確認
+        qgis_folders = [item for item in os.listdir() if item.startswith('QGIS') and os.path.isdir(item)]
+        for folder in qgis_folders:
+            print(f"QGISポータブル版が見つかりました：{folder}")
+            versions.append(f'ポータブル版 ({folder})')
+        
+        return versions
+
     tk.Label(root, text="ユーザー名:").pack()
     username_entry = tk.Entry(root)
     username_entry.insert(0, get_username_from_auth_ini())
@@ -117,37 +134,13 @@ def create_login_window():
     tk.Label(root, text="バージョン選択:").pack()
     version_var = tk.StringVar()
     version_combo = ttk.Combobox(root, textvariable=version_var)
-    version_combo_values = []
-
-    # インストール版の確認
-    install_path = get_associated_app('qgs')
-    print(f"インストール版の確認：{install_path}")
-
-    # ポータブル版の確認
-    contents = os.listdir()
-    qgis_folders = [item for item in contents if item.startswith('QGIS') and os.path.isdir(item)]
-
-    if install_path:
-        version_combo_values.append('install')
-        version_var.set('install')
-
-    if qgis_folders:
-        print("QGISで始まるフォルダが見つかりました:")
-        for folder in qgis_folders:
-            version_combo_values.append(f'portable ({folder})')
-        if not version_combo_values:  # install版が見つからなかった場合
-            version_var.set(version_combo_values[0])
-
-    if not version_combo_values:
-        version_combo_values.append('QGISが見つかりません')
-        version_var.set('QGISが見つかりません')
-
-    version_combo['values'] = version_combo_values
+    version_combo['values'] = get_qgis_versions()
+    print(f"バージョン選択初期設定：{version_combo['values'][0]}")
+    version_combo.current(0)
     version_combo.pack()
     version_combo.bind('<Return>', focus_profile_combo)
     
     # ================　プロファイルの選択 ===================
-
     tk.Label(root, text="プロファイル選択:").pack()
     profile_var = tk.StringVar()
     profile_combo = ttk.Combobox(root, textvariable=profile_var)
@@ -174,6 +167,7 @@ def save_username_to_ini(username):
 def run_login():
     return create_login_window()
 
+
 if __name__ == "__main__":
     logged_in_user, user_role, selected_version, selected_profile = run_login()
     if logged_in_user:
@@ -181,3 +175,4 @@ if __name__ == "__main__":
         save_username_to_ini(logged_in_user)
     else:
         print("ログインに失敗しました。")
+
