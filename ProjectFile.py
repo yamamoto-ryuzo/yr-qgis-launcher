@@ -11,7 +11,7 @@
 
 # EXE作成
 #　ディレクトリは適宜変更
-# cd C:\github\yr-qgis-portable-launcher2
+# cd C:\github\yr-qgis-launcher
 # pyinstaller ProjectFile.py --onefile --noconsole --distpath ./ --clean
 #　完成したらC:\GoogleDrive\github\yr-qgis-portable-launcher2\QGIS_portable\ProjectFile.exeとかメッセージが出て完成
   
@@ -21,8 +21,6 @@
 #プロジェクトファイルは、そのため python.qgs となりエラーで問題なし
 
 import auth
-
-
 
 import os
 import sys
@@ -38,6 +36,7 @@ import stat
 
 # 独自インポート
 import set_drive,auth
+import VersionManager
 
 # グローバル変数の定義
 # portable_profileを複写する場合は　profile = 1　にイベントで変更
@@ -327,6 +326,11 @@ def main():
 
 
 if __name__ == "__main__":
+    #################
+    #  システム更新  #
+    #################
+    VersionManager.main()
+    
     ################
     #  認証を実施   #
     ################

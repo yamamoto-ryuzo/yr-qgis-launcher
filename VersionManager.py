@@ -11,7 +11,7 @@ from tkinter import messagebox
 # chcp 65001を実行
 subprocess.run('chcp 65001', shell=True, check=True)
 # 標準出力のエンコーディングを設定
-sys.stdout.reconfigure(encoding='utf-8')
+# sys.stdout.reconfigure(encoding='utf-8')
 
 def read_version_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -65,8 +65,6 @@ def robocopy_folders(source_path, local_path, folder):
     print(f"\nロボコピー実行中:")
     print(f"ソース: {source_folder}")
     print(f"コピー先: {local_folder}")
-    # メッセージを表示
-    messagebox.showerror("QGISシステム配信", f"サーバ {source_folder}\nクライアント: {local_folder}")
     command = [
         "robocopy",
         source_folder,
@@ -79,17 +77,19 @@ def robocopy_folders(source_path, local_path, folder):
         "/TEE"
     ]
     
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', errors='replace')
-    
-    stdout, stderr = process.communicate()
-    
-    print(f"\n{folder}のコピー結果:")
-    print(stdout)
-    if stderr:
-        print("エラー:", stderr)
-    print("---")
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, text=True, encoding='utf-8', errors='replace')
+    print("システム更新中。")
+    for output in process.stdout:
+        print(output.strip())
+
+    return process.returncode
+
 
 def main():
+   # tkinterのルートウィンドウを作成（必要に応じて）
+    root = tk.Tk()
+    root.withdraw()  # メインウィンドウを非表示にする
+    
     # version.txtファイルのパスを指定
     version_file = "version.txt"
 
@@ -98,7 +98,7 @@ def main():
 
     version = data.get('version')
     main_data_path = data.get('main_data_path')
-    local_path = data.get('local_path')
+    local_path = data.get('local_path', main_data_path)
     # 複数フォルダに対応
     folders = data.get('folders', [])
 
@@ -129,7 +129,4 @@ def main():
         robocopy_folders(main_data_path, local_path, '')
 
 if __name__ == "__main__":
-    # tkinterのルートウィンドウを作成（必要に応じて）
-    root = tk.Tk()
-    root.withdraw()  # メインウィンドウを非表示にする
-    main()
+     main()

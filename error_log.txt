@@ -1,0 +1,14 @@
+エラーが発生しました: I/O operation on closed file.
+バージョン: 20241208
+エラーが発生しました: I/O operation on closed file.
+ソース: C:\github\yr-qgis-launcher
+エラーが発生しました: I/O operation on closed file.
+コピー先: C:\QGIS
+エラーが発生しました: I/O operation on closed file.
+変更対象フォルダ: 
+エラーが発生しました: I/O operation on closed file.
+
+ロボコピーの対象フォルダー（絶対パス）:
+エラーが発生しました: I/O operation on closed file.
+
+version.txtファイルの内容が同じです。ロボコピーは不要です。
