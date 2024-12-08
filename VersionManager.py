@@ -97,7 +97,7 @@ def main():
     data = read_version_file(version_file)
 
     version = data.get('version')
-    main_data_path = data.get('main_data_path')
+    main_data_path = data.get('main_data_path','')
     local_path = data.get('local_path', main_data_path)
     # 複数フォルダに対応
     folders = data.get('folders', [])
