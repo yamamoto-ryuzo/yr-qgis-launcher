@@ -278,7 +278,10 @@ def main():
         shutil.copytree(source_path, portable_profile_path, dirs_exist_ok=True)
         print(f"profilesフォルダを初期化完了しました：{portable_profile_path}")
  
-    if selected_version == 'インストール版':
+    if selected_version == 'install':
+        ######################
+        # インストール版の起動 #
+        #####################
         exeQGIS = auth.get_associated_app('qgs')
     else:
         #####################
@@ -334,17 +337,18 @@ if __name__ == "__main__":
     ################
     #  認証を実施   #
     ################
-    username,userrole,selected_version,selected_profile= auth.run_login()
+    logged_in_user,user_role,selected_version,selected_profile= auth.run_login()
+    print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 選択されたバージョン: {selected_version},プロファイル：{selected_profile}")
     # 環境変数などの設定
     setting = '../ini/qgis_global_settings.ini'
     # 関数を呼び出して値を書き込む
-    write_to_ini('./ini/qgis_global_settings.ini', username, userrole)
+    write_to_ini('./ini/qgis_global_settings.ini', logged_in_user, user_role)
 
     # ユーザーインファーフェイスのカスタマイズ
-    customUI = '../ini/' + userrole + 'UI_customization.ini'
-    if username:
-        print(f"ログインに成功しました。ユーザー名: {username}")
-        auth.save_username_to_ini(username)
+    customUI = '../ini/' + user_role + 'UI_customization.ini'
+    if logged_in_user:
+        print(f"ログインに成功しました。ユーザー名: {logged_in_user}")
+        auth.save_username_to_ini(logged_in_user)
         main()
     else:
         print("ログインに失敗しました。")
