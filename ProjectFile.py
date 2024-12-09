@@ -160,28 +160,6 @@ def check_folder_exists(folder_path):
         # messagebox.showerror("エラー", f"フォルダ '{folder_path}' は存在しません。")
         return False
 
-# フォルダの強制削除
-def force_delete(path):
-    def on_rm_error(func, path, exc_info):
-        # 権限を変更して再試行
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
-
-    # 複数回削除を試みる
-    max_attempts = 3
-    for attempt in range(max_attempts):
-        try:
-            if os.path.isfile(path):
-                os.unlink(path)
-            elif os.path.isdir(path):
-                shutil.rmtree(path, onerror=on_rm_error)
-            return True
-        except Exception as e:
-            if attempt == max_attempts - 1:
-                print(f"{max_attempts}回の試行後、{path}の削除に失敗しました: {e}")
-                return False
-            time.sleep(1)  # 再試行前に少し待機
-
 ####################
 #  MAINプログラム  #
 ###################
@@ -236,12 +214,16 @@ def main():
 
     # カレントフォルダをQGISのインストールフォルダに設定
     # ディレクトリが存在しない場合、作成する
+    # カレントドライブは　VirtualDrive（例：Q:）
+    messagebox.showerror("カレントフォルダ", os.getcwd())
+    """
     if not os.path.exists(qgis_install_dir):
         os.makedirs(qgis_install_dir)
         print(f"ディレクトリを作成しました: {qgis_install_dir}")
     else:
         print(f"ディレクトリは既に存在します: {qgis_install_dir}")
     os.chdir(qgis_install_dir)
+    """
 
     ##############################
     # portableプロファイルを初期化 #
@@ -260,21 +242,14 @@ def main():
     portable_profile_path = qgisconfig_folder
     print (f"実行・ポータブルprofilesフォルダ:{portable_profile_path}")  
 
-    source_path = os.path.abspath('../portable_profile')
+    source_path = os.path.abspath('./portable_profile')
     print (f"配布用・ポータブルprofilesフォルダ:{source_path}")        
     # ポータブルプロファイルが存在しない場合にコピーする
     # 起動時に　'profile強制更新'　を選択
     if not os.path.exists(os.path.join(portable_profile_path,'profiles','portable')) or (selected_profile == 'profile強制更新'):
         print(f"profilesフォルダを初期化します：{portable_profile_path}")
         
-        # Force delete the directory
-        #if force_delete(portable_profile_path):
-        #    print(f"profilesフォルダを削除しました：{portable_profile_path}")
-        #else:
-        #    print(f"profilesフォルダの削除に失敗しました：{portable_profile_path}")
-        #    You might want to handle this failure case appropriately
-    
-        # 上書き許可でコピー
+         # 上書き許可でコピー
         shutil.copytree(source_path, portable_profile_path, dirs_exist_ok=True)
         print(f"profilesフォルダを初期化完了しました：{portable_profile_path}")
  
@@ -282,6 +257,7 @@ def main():
         ######################
         # インストール版の起動 #
         #####################
+        # 'qgs'拡張子に関連付けられたアプリケーション（通常はQGIS）のパス
         exeQGIS = auth.get_associated_app('qgs')
     else:
         #####################
@@ -291,7 +267,7 @@ def main():
         DRV_LTR = os.getcwd()
         print (f"現在の作業フォルダのパス DRV_LTR：{DRV_LTR}")  
         # QGISのインストールパスを設定
-        OSGEO4W_ROOT = os.path.join(DRV_LTR, 'qgis')
+        OSGEO4W_ROOT = os.path.join(DRV_LTR,qgis_install_dir, 'qgis')
         # QGISのタイプとして最新版とLTRを自動判定
         folder_path = os.path.join(OSGEO4W_ROOT, 'apps', 'qgis-ltr')
         if check_folder_exists(folder_path):
