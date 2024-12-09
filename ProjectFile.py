@@ -212,11 +212,11 @@ def main():
     #   QGIS実行   #
     ################
 
+    """
     # カレントフォルダをQGISのインストールフォルダに設定
     # ディレクトリが存在しない場合、作成する
     # カレントドライブは　VirtualDrive（例：Q:）
     messagebox.showerror("カレントフォルダ", os.getcwd())
-    """
     if not os.path.exists(qgis_install_dir):
         os.makedirs(qgis_install_dir)
         print(f"ディレクトリを作成しました: {qgis_install_dir}")
