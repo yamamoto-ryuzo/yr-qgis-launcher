@@ -15,7 +15,6 @@
 # pyinstaller ProjectFile.py --onefile --noconsole --distpath ./ --clean
 #　完成したらC:\GoogleDrive\github\yr-qgis-portable-launcher2\QGIS_portable\ProjectFile.exeとかメッセージが出て完成
   
-
 #デバッグ時の注意事項
 #実行ファイル名は必ず　python.exe　となるので、環境設定は　python.config が必ず必要
 #プロジェクトファイルは、そのため python.qgs となりエラーで問題なし
@@ -48,7 +47,8 @@ selected_profile = ''
 qgisconfig_folder = ''
 customUI = ''
 setting = ''
-exeQGIS = '' #実施に実行するQGIS選択
+# 実施に実行するQGIS本体を指定する変数
+exeQGIS = ''
 
 def write_to_ini(ini_file, username, userrole):
     # ConfigParserオブジェクトの作成
@@ -252,7 +252,7 @@ def main():
          # 上書き許可でコピー
         shutil.copytree(source_path, portable_profile_path, dirs_exist_ok=True)
         print(f"profilesフォルダを初期化完了しました：{portable_profile_path}")
- 
+    """
     if selected_version == 'インストール版':
         ######################
         # インストール版の起動 #
@@ -281,7 +281,8 @@ def main():
         os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps')
         os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'bin')
         os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps', 'grass')
-
+    """
+    
     ##############
     # QGISの起動 #
     #############
@@ -313,8 +314,8 @@ if __name__ == "__main__":
     ################
     #  認証を実施   #
     ################
-    logged_in_user,user_role,selected_version,selected_profile= auth.run_login()
-    print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 選択されたバージョン: {selected_version},プロファイル：{selected_profile}")
+    logged_in_user,user_role,exeQGIS,selected_profile= auth.run_login()
+    print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 実行するQGIS： {exeQGIS},プロファイル：{selected_profile}")
     # 環境変数などの設定
     setting = '../ini/qgis_global_settings.ini'
     # 関数を呼び出して値を書き込む

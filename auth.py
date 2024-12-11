@@ -7,6 +7,17 @@ import os
 import configparser
 import winreg
 
+# 独自インポート
+import ProjectFile
+
+# バージョン選択格納用のカスタムコンボボックスの定義
+class CustomCombobox(ttk.Combobox):
+    def __init__(self, master, **kw):
+        self.display_values = kw.pop('display_values', [])
+        self.actual_values = kw.pop('actual_values', [])
+        ttk.Combobox.__init__(self, master, **kw)
+        self['values'] = self.display_values
+
 def center_window(window, width, height):
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
@@ -63,7 +74,8 @@ def create_login_window():
 
         entered_username = username_entry.get()
         entered_password = password_entry.get()
-        selected_version = version_combo.get()
+        selected_version_index = version_combo.current()
+        selected_version = version_combo.actual_values[selected_version_index]
         selected_profile = profile_combo.get()
         
         try:
@@ -82,7 +94,7 @@ def create_login_window():
         valid_user = next((user for user in users if user['username'] == entered_username and user['password'] == entered_password), None)
 
         if valid_user:
-            messagebox.showinfo("ログイン成功", f"ようこそ、{entered_username}さん!\n あなたの権限は {valid_user['userrole']}です。\n 選択されたバージョン: {selected_version}\n 選択されたプロファイル: {selected_profile}")
+            messagebox.showinfo("ログイン成功", f"ようこそ、{entered_username}さん!\n あなたの権限は {valid_user['userrole']}です。\n 選択されたバージョン: {version_combo.get()}\n 選択されたプロファイル: {selected_profile}")
             logged_in_user = entered_username
             user_role = valid_user['userrole']
             root.quit()
@@ -101,22 +113,36 @@ def create_login_window():
         username_entry.delete(0, tk.END)
         password_entry.delete(0, tk.END)
         username_entry.focus()
-
+        
     def get_qgis_versions():
-        versions = []
+        versions = [[], []]
+        
+        def add_column(value1, value2):
+            versions[0].append(value1)
+            versions[1].append(value2)
         
         # インストール版の確認
         install_path = get_associated_app('qgs')
         if install_path:
             print(f"インストール版が見つかりました：{install_path}")
-            versions.append('インストール版')
+            add_column('インストール版', install_path)
         
         # ポータブル版の確認
         qgis_folders = [item for item in os.listdir() if item.startswith('QGIS') and os.path.isdir(item)]
         for folder in qgis_folders:
-            print(f"QGISポータブル版が見つかりました：{folder}")
-            versions.append(f'ポータブル版 ({folder})')
-        
+            DRV_LTR = os.getcwd()
+            OSGEO4W_ROOT = os.path.join(DRV_LTR, folder, 'qgis')
+            folder_path = os.path.join(OSGEO4W_ROOT, 'apps', 'qgis-ltr')
+            QGIS_Type = 'qgis-ltr' if os.path.exists(folder_path) else 'qgis'
+            program_path = os.path.join(OSGEO4W_ROOT, 'bin', f"{QGIS_Type}.bat")
+            add_column(f'ポータブル版 ({folder})', program_path)
+            print("QGISポータブル版が見つかりました：",versions[0][-1] )
+            print("QGISフォルダのパス：",versions[1][-1] )
+            # システムパスにQGIS関連のフォルダを追加
+            os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps', QGIS_Type, 'bin')
+            os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps')
+            os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'bin')
+            os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps', 'grass')
         return versions
 
     tk.Label(root, text="ユーザー名:").pack()
@@ -133,8 +159,10 @@ def create_login_window():
     #============= バージョン選択 =============
     tk.Label(root, text="バージョン選択:").pack()
     version_var = tk.StringVar()
-    version_combo = ttk.Combobox(root, textvariable=version_var)
-    version_combo['values'] = get_qgis_versions()
+    versions = get_qgis_versions()
+    version_combo = CustomCombobox(root, textvariable=version_var, 
+                                   display_values=versions[0], 
+                                   actual_values=versions[1])
     print(f"バージョン選択初期設定：{version_combo['values'][0]}")
     version_combo.current(0)
     version_combo.pack()
@@ -167,7 +195,6 @@ def save_username_to_ini(username):
 def run_login():
     return create_login_window()
 
-
 if __name__ == "__main__":
     logged_in_user, user_role, selected_version, selected_profile = run_login()
     if logged_in_user:
@@ -175,4 +202,3 @@ if __name__ == "__main__":
         save_username_to_ini(logged_in_user)
     else:
         print("ログインに失敗しました。")
-
