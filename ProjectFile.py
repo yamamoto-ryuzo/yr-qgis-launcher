@@ -90,18 +90,6 @@ def show_directory_contents():
     # ウィンドウを表示
     window.mainloop()
 
-# exe.config にQGISの実行フォルダの存在するフォルダを指定  
-# ./QGIS3.34.4
-def read_qgis_install_dir_from_config():
-    try:
-        with open("exe.config", "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                if line.startswith("QGIS_INSTALL_DIR"):
-                    return line.split("=")[1].strip()
-    except Exception as e:
-        print("設定ファイルの読み込み中にエラーが発生しました:", e)
-        return None
 
 # プロジェクトファイルの起動用コンフィグ読込設定
 def read_qgis_project_file_from_config(file_name):
@@ -119,8 +107,6 @@ def read_qgis_project_file_from_config(file_name):
             qgisconfig_folder = None
             # 仮想ドライブの標準設定は　Q:ドライブ　とする。
             VirtualDrive = "Q:"
-            # QGISの実行フォルダの上書き
-            qgis_install_dir_ow = None
 
             for line in lines:
                 # コメント行を無視する
@@ -139,11 +125,7 @@ def read_qgis_project_file_from_config(file_name):
                     # 稼働ドライブを取得
                     VirtualDrive = line.split("=")[1].strip()
                     print (f"仮想ドライブの設定情報：{VirtualDrive}")
-                elif line.startswith("qgis_install_dir_ow"):
-                    # QGISの実行フォルダの上書き
-                    qgis_install_dir_ow = line.split("=")[1].strip()
-                    print (f"仮想ドライブの設定情報の上書き：{qgis_install_dir_ow}")
-            return qgis_project_file, qgisconfig_folder ,VirtualDrive , qgis_install_dir_ow
+            return qgis_project_file, qgisconfig_folder ,VirtualDrive
     except Exception as e:
         print("設定ファイルの読み込み中にエラーが発生しました:", e)
         return None
@@ -174,20 +156,12 @@ def main():
     file_name = os.path.splitext(os.path.basename(exe_path))[0]
     print(f"実行ファイル名：{file_name}")
     
-    # QGISのインストールフォルダを設定ファイルから読み込む
-    qgis_install_dir = read_qgis_install_dir_from_config()
-    if qgis_install_dir is None:
-        error_message = "QGISのインストールフォルダが【exe.config】から読み込めませんでした。"
-        messagebox.showerror("エラー", error_message)
-        return
-    
     # 通常は　　　　Projyect.config
     # デバック時は　python.config となるので注意！
     # QGISのプロジェクトファイルを設定ファイルから読み込む
-    qgis_project_file, qgisconfig_folder , VirtualDrive , qgis_install_dir_ow = read_qgis_project_file_from_config(file_name)
-    if qgis_install_dir_ow != None:
-        qgis_install_dir = qgis_install_dir_ow
+    qgis_project_file, qgisconfig_folder , VirtualDrive = read_qgis_project_file_from_config(file_name)
     print (f"qgis_project_fileを設定しました：{qgis_project_file}")
+
 
     ############################
     #   仮想ドライブ環境の設定   #
@@ -207,23 +181,6 @@ def main():
     os.chdir( VirtualDrive + "\\" )
     DRV_LTR = os.getcwd()  
     print (f"現在の作業フォルダのパス：{DRV_LTR}")  
-
-    ################
-    #   QGIS実行   #
-    ################
-
-    """
-    # カレントフォルダをQGISのインストールフォルダに設定
-    # ディレクトリが存在しない場合、作成する
-    # カレントドライブは　VirtualDrive（例：Q:）
-    messagebox.showerror("カレントフォルダ", os.getcwd())
-    if not os.path.exists(qgis_install_dir):
-        os.makedirs(qgis_install_dir)
-        print(f"ディレクトリを作成しました: {qgis_install_dir}")
-    else:
-        print(f"ディレクトリは既に存在します: {qgis_install_dir}")
-    os.chdir(qgis_install_dir)
-    """
 
     ##############################
     # portableプロファイルを初期化 #
@@ -252,36 +209,6 @@ def main():
          # 上書き許可でコピー
         shutil.copytree(source_path, portable_profile_path, dirs_exist_ok=True)
         print(f"profilesフォルダを初期化完了しました：{portable_profile_path}")
-    """
-    if selected_version == 'インストール版':
-        ######################
-        # インストール版の起動 #
-        #####################
-        # 'qgs'拡張子に関連付けられたアプリケーション（通常はQGIS）のパス
-        exeQGIS = auth.get_associated_app('qgs')
-    else:
-        #####################
-        # ポータブル版の起動 #
-        ####################
-        # 現在の作業フォルダを取得
-        DRV_LTR = os.getcwd()
-        print (f"現在の作業フォルダのパス DRV_LTR：{DRV_LTR}")  
-        # QGISのインストールパスを設定
-        OSGEO4W_ROOT = os.path.join(DRV_LTR,qgis_install_dir, 'qgis')
-        # QGISのタイプとして最新版とLTRを自動判定
-        folder_path = os.path.join(OSGEO4W_ROOT, 'apps', 'qgis-ltr')
-        if check_folder_exists(folder_path):
-            QGIS_Type='qgis-ltr'
-        else:
-            QGIS_Type='qgis'
-        print ("QGISフォルダのパス", OSGEO4W_ROOT) 
-        exeQGIS = os.path.join(OSGEO4W_ROOT, 'bin', QGIS_Type+'.bat')
-        # システムパスにQGIS関連のフォルダを追加
-        os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps', QGIS_Type, 'bin')
-        os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps')
-        os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'bin')
-        os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps', 'grass')
-    """
     
     ##############
     # QGISの起動 #
