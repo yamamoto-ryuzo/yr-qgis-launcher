@@ -1,9 +1,7 @@
 # 初めての人でも扱いやすいポータブルQGIS環境の構築
 
 ## 起動画面
-
-![image](https://github.com/user-attachments/assets/ea4196c0-be51-47d9-888a-45811f3e2024)
-
+![image](https://github.com/user-attachments/assets/881f16f4-0e6d-459b-90b2-bcc51b3c63af)
 #### 【auth.config】ファイルが存在しない場合は、認証が不要になります
 
 ［標準設定］  
