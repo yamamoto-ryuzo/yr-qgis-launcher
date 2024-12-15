@@ -6,6 +6,7 @@ import sys
 import os
 import configparser
 import winreg
+import webbrowser
 
 # 独自インポート
 import ProjectFile
@@ -45,10 +46,13 @@ def get_associated_app(extension):
     except WindowsError:
         return ''
 
+def open_qgis_website():
+    webbrowser.open("https://qgis.org/")
+
 def create_login_window():
     root = tk.Tk()
     root.title("ログインフォーム")
-    center_window(root, 300, 220)
+    center_window(root, 300, 260)
 
     login_attempts = 0
     max_attempts = 10
@@ -181,8 +185,11 @@ def create_login_window():
     login_button.pack(pady=10)
     login_button.bind('<Return>', validate_login)
 
-    username_entry.focus()
+    # QGISリンクボタンの追加
+    qgis_link_button = tk.Button(root, text="QGISインストール版の取得", command=open_qgis_website)
+    qgis_link_button.pack(pady=5)
 
+    username_entry.focus()
     root.mainloop()
     return logged_in_user, user_role, selected_version, selected_profile
 
