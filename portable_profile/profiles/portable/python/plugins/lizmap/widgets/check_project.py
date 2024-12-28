@@ -251,7 +251,7 @@ class Checks:
         other_auth = tr('Either switch to another authentication mechanism')
         safeguard = tr('Or disable this safeguard in your Lizmap plugin settings')
         global_connection = tr(
-            'To fix layers loaded <b>later</b>, edit your global PostgreSQL connection to enable this option, then '
+            'To fix layers loaded <b>later</b>, edit your global PostgreSQL/raster connection to enable this option, then '
             'change the datasource by right clicking on each layer above, then click "Change datasource" in the menu. '
             'Finally reselect your layer in the new dialog with the updated connection. When opening a QGIS project in '
             'your computer, with a fresh launched QGIS software, you mustn\'t have any prompt for a user or password. '
@@ -532,7 +532,7 @@ class Checks:
                 '</ul>'
             ).format(
                 tr('Switch to a CRS having not inverted axis.'),
-                tr('Upgrade your Lizmap Web Client to 3.7.4.'),
+                tr('Upgrade your Lizmap Web Client to latest 3.7.'),
             ),
             Levels.Project,
             Severities().important,
@@ -799,6 +799,39 @@ class Checks:
                 '</ul>'
             ).format(help=tr('Switch to a COG format'))
         )
+        self.RasterAuthenticationDb = Check(
+            f"{Settings.PreventPgAuthDb}_raster",
+            tr('QGIS Authentication database'),
+            tr(
+                'The layer is using the QGIS authentication database. You have activated a safeguard preventing you '
+                'using the QGIS authentication database.'
+            ),
+            (
+                '<ul>'
+                '<li>{help}</li>'
+                '<li>{other}</li>'
+                '<li>{global_connection}</li>'
+                '</ul>'.format(
+                    help=other_auth,
+                    other=safeguard,
+                    global_connection=global_connection,
+                )
+            ),
+            Levels.Layer,
+            Severities().unknown,
+            QIcon(':/images/themes/default/mIconPostgis.svg'),
+            tr('The layer is using the QGIS authentication database. This is not compatible with {}').format(CLOUD_NAME),
+            (
+                '<ul>'
+                '<li>{login_pass}</li>'
+                '</ul>'
+            ).format(
+                login_pass=tr(
+                    'Store the login and password in the layer by editing the global connection and do the '
+                    '"Change datasource" on each layer.'
+                )
+            )
+        )
         self.AuthenticationDb = Check(
             Settings.PreventPgAuthDb,
             tr('QGIS Authentication database'),
@@ -1023,9 +1056,9 @@ class TableCheck(QTableWidget):
         """ Setting up parameters. """
         # Do not use the constructor __init__, it's not working. Maybe because of UI files ?
 
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setAlternatingRowColors(True)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().setVisible(True)
@@ -1049,6 +1082,14 @@ class TableCheck(QTableWidget):
             if self.item(row, 0).data(self.DATA) == 0:
                 return True
         return False
+
+    def has_importants(self) -> int:
+        """ If the table has at least one important issue. """
+        count = 0
+        for row in range(self.rowCount()):
+            if self.item(row, 0).data(self.DATA) == 1:
+                count += 1
+        return count
 
     def has_rows(self) -> int:
         """ If the table has at least one row displayed. """

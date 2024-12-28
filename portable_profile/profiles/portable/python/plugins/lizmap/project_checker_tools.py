@@ -78,8 +78,11 @@ def project_safeguards_checks(
             if layer.source().lower().endswith('ecw') and prevent_ecw:
                 results[SourceLayer(layer.name(), layer.id())] = checks.PreventEcw
 
-            if french_geopf_authcfg_url_parameters(layer.source()) and prevent_auth_id:
-                results[SourceLayer(layer.name(), layer.id())] = checks.FrenchGeoPlateformeUrl
+            if prevent_auth_id:
+                if french_geopf_authcfg_url_parameters(layer.source()):
+                    results[SourceLayer(layer.name(), layer.id())] = checks.FrenchGeoPlateformeUrl
+                elif authcfg_url_parameters(layer.source()):
+                    results[SourceLayer(layer.name(), layer.id())] = checks.RasterAuthenticationDb
 
         if is_vector_pg(layer):
             # Make a copy by using a string, so we are sure to have user or password
@@ -237,10 +240,24 @@ def invalid_type_primary_key(layer: QgsVectorLayer, check_field: str) -> bool:
     return field.typeName().lower() == check_field
 
 
+def _duplicated_layer_name_or_group(layer_tree: QgsLayerTreeNode, result: Dict) -> Dict[str, int]:
+    """ Recursive function to check all group names. """
+    for child in layer_tree.children():
+        if QgsLayerTree.isGroup(child):
+            child = cast_to_group(child)
+            name = child.name()
+            if name not in result.keys():
+                result[name] = 1
+            else:
+                result[name] += 1
+            result = _duplicated_layer_name_or_group(child, result)
+    return result
+
+
 def duplicated_layer_name_or_group(project: QgsProject) -> dict:
     """ The CFG can only store layer/group names which are unique. """
     result = {}
-    # Vector and raster layers
+    # For all layer within the project
     for layer in project.mapLayers().values():
         layer: QgsMapLayer
         name = layer.name()
@@ -249,16 +266,8 @@ def duplicated_layer_name_or_group(project: QgsProject) -> dict:
         else:
             result[name] += 1
 
-    # Groups
-    for child in project.layerTreeRoot().children():
-        if QgsLayerTree.isGroup(child):
-            child = cast_to_group(child)
-            name = child.name()
-            if name not in result.keys():
-                result[name] = 1
-            else:
-                result[name] += 1
-
+    # For all groups with a recursive function
+    result = _duplicated_layer_name_or_group(project.layerTreeRoot(), result)
     return result
 
 
@@ -387,7 +396,7 @@ def simplify_provider_side(project: QgsProject, fix=False) -> List[SourceLayer]:
         if not is_vector_pg(layer, geometry_check=True):
             continue
 
-        if layer.geometryType() == QgsWkbTypes.PointGeometry:
+        if layer.geometryType() == QgsWkbTypes.GeometryType.PointGeometry:
             continue
 
         has_simplification = layer.simplifyMethod().simplifyHints() != QgsVectorSimplifyMethod.NoSimplification
@@ -470,6 +479,19 @@ def trailing_layer_group_name(layer_tree: QgsLayerTreeNode, project, results: Li
     return results
 
 
+def authcfg_url_parameters(datasource: str) -> bool:
+    """ Check for authcfg in a datasource, using a plain string.
+
+    This function is not using QgsDataSourceUri::authConfigId()
+    """
+    url_param = QUrlQuery(html.unescape(datasource))
+    for param in url_param.queryItems():
+        if param[0].lower() == 'authcfg' and param[1] != '':
+            return True
+
+    return False
+
+
 def french_geopf_authcfg_url_parameters(datasource: str) -> bool:
     """ Check for authcfg in a datasource, using a plain string.
 
@@ -477,14 +499,9 @@ def french_geopf_authcfg_url_parameters(datasource: str) -> bool:
     """
     if 'data.geopf.fr' not in datasource.lower():
         return False
-
-    url_param = QUrlQuery(html.unescape(datasource))
-    for param in url_param.queryItems():
-        if param[0].lower() == 'authcfg' and param[1] != '':
-            return True
-        # if param[0].lower().startswith("http-header:"):
-        #     return True
-    return False
+    # if param[0].lower().startswith("http-header:"):
+    #     return True
+    return authcfg_url_parameters(datasource)
 
 
 def duplicated_rule_key_legend(project: QgsProject, filter_data: bool = True) -> Dict[str, Dict[str, int]]:

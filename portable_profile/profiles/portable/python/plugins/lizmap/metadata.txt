@@ -14,21 +14,26 @@ tracker=https://github.com/3liz/lizmap-plugin/issues
 repository=https://github.com/3liz/lizmap-plugin
 
 # Done automatically by qgis-plugin-ci
-version=4.4.4
+version=4.4.6
 commitNumber=1
-commitSha1=92ff01ba69cfdc4ef42294b1a025ad1513a1c93b
-dateTime=2024-10-29T14:12:33Z
+commitSha1=f4899817428588977612781f9816f33d6daa7f12
+dateTime=2024-12-10T13:33:10Z
 changelog=
+ Version 4.4.6:
+ * Rephrase sentences about print layouts
+ * Check for raster layer using AuthDB if needed
+ * Use a recursive function to browse all group names when looking for duplicated items
+ * Add a confirmation text input if the project has some "important" errors before generating CFG file, Lizmap Cloud only
+
+ Version 4.4.5:
+ * Add Qt6 compatibility
+ * Review social networks links
+ * Fix export of modules etc. in the markdown
+ * Do not notify Lizmap Cloud users if the instance is not up to date
+
  Version 4.4.4:
  * Add new settings about maximum scales when zooming on points, lines or polygons, for Lizmap Web Client 3.9
  * Temporary disable the "duplicated layer with different filters check"
-
- Version 4.4.3:
- * Improve layout when copy/pasting versions
- * Helper function for the Dynamic layer plugin
-
- Version 4.4.2:
- * Export the list of modules when requesting some support
 
 
 # End of qgis-plugin-ci
@@ -37,3 +42,4 @@ icon=resources/icons/icon.png
 experimental=False
 deprecated=False
 server=False
+supportsQt6=true

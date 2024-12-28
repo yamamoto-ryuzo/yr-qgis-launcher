@@ -2209,7 +2209,12 @@ def mmqgis_geocode_web_service(input_csv_name, parameter_attributes, web_service
 				request_context.verify_mode = ssl.CERT_NONE
 
 				# https://operations.osmfoundation.org/policies/nominatim/
-				headers = {'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3)"}
+				# 11/9/2024: Added referer to avoid 403 prohibited error
+
+				headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0)",
+					'Referer': 'https://plugins.qgis.org/plugins/mmqgis/' }
+
+				# headers = {'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3)" }
 
 				if web_service == "NetToolKit":
 					headers['X-NTK-KEY'] = api_key
