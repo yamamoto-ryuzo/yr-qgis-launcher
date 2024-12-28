@@ -79,7 +79,7 @@ https://github.com/Orbitalnet-incs/meshprint
 #### Layers menu from project
 https://github.com/xcaeag/MenuFromProject-Qgis-Plugin  
 ### ・画面
-#### ZoomView
+#### ZoomView（20241228_標準機能の方が高機能になったため廃止）
 https://bitbucket.org/janzandr/zoomview/src/master/  
 ### ・WEB連携
 #### Street View
