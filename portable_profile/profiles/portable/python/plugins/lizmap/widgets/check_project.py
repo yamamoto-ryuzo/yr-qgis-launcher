@@ -1028,7 +1028,7 @@ class SourceType:
 
     Field = SourceField
     Layer = SourceLayer
-    Groupe = SourceGroup
+    Group = SourceGroup
 
 
 class Error:
@@ -1048,7 +1048,7 @@ class TableCheck(QTableWidget):
     """ Subclassing of QTableWidget in the plugin. """
 
     # noinspection PyUnresolvedReferences
-    DATA = Qt.UserRole
+    DATA = Qt.ItemDataRole.UserRole
     JSON = DATA + 1
     EXPORT = JSON + 1
 
@@ -1132,7 +1132,7 @@ class TableCheck(QTableWidget):
         """ Export a sum up of warnings to Markdown. """
         result = {}
         for row in range(self.rowCount()):
-            error_name = self.item(row, 3).data(Qt.DisplayRole)
+            error_name = self.item(row, 3).data(Qt.ItemDataRole.DisplayRole)
             if error_name not in result.keys():
                 result[error_name] = 1
             else:
@@ -1188,7 +1188,7 @@ class TableCheck(QTableWidget):
             layer = QgsProject.instance().mapLayer(error.source_type.layer_id)
             item.setIcon(QgsMapLayerModel.iconForLayer(layer))
             item.setData(self.JSON, error.source_type.layer_id)
-        elif isinstance(error.source_type, SourceType.Groupe):
+        elif isinstance(error.source_type, SourceType.Group):
             item.setToolTip(error.source_type.name)
             item.setIcon(QIcon(":images/themes/default/mActionFolder.svg"))
             item.setData(self.JSON, error.source_type.name)

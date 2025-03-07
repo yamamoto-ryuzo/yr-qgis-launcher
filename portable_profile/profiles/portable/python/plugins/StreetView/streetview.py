@@ -19,19 +19,33 @@
  *                                                                         *
  ***************************************************************************/
 """
-# Import the PyQt and QGIS libraries
-from PyQt5 import Qt, QtCore, QtWidgets, QtGui, QtWebKit, QtWebKitWidgets, QtXml, QtNetwork, uic
+
 import subprocess
 from qgis.core import *
 from qgis.gui import *
 from qgis.utils import *
 from .resources_rc import *
+
+from qgis.PyQt.QtCore import Qt, QEventLoop, QVariant
+from qgis.PyQt.QtWidgets import QAction, QMessageBox, QInputDialog, QPushButton
+from qgis.PyQt.QtGui import QIcon, QColor
+
 # Import the code for the dialog
 import os.path
 import math
 import webbrowser  
-rb=QgsRubberBand(iface.mapCanvas(),QgsWkbTypes.PointGeometry )
-rl=QgsRubberBand(iface.mapCanvas(),QgsWkbTypes.LineGeometry )
+
+
+
+
+from .resources_rc import *    
+    
+rb=QgsRubberBand(iface.mapCanvas(),QgsWkbTypes.GeometryType.PointGeometry )
+rl=QgsRubberBand(iface.mapCanvas(),QgsWkbTypes.GeometryType.LineGeometry )
+
+
+
+
 premuto= False
 linea=False
 point0=iface.mapCanvas().getCoordinateTransform().toMapCoordinates(0, 0)
@@ -54,7 +68,7 @@ class StreetView:
 
 
     def initGui(self):
-        self.action = QtWidgets.QAction(QtGui.QIcon(":/plugins/streetview/icon.png"),u"StreetView", self.iface.mainWindow())
+        self.action = QAction(QIcon(":/plugins/streetview/icon.png"),u"StreetView", self.iface.mainWindow())
         self.action.triggered.connect(self.run)
         self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu(u"&StreetView", self.action)
@@ -85,8 +99,8 @@ class PointTool(QgsMapTool):
             global rb ,premuto ,point0
             if not premuto: 
               premuto=True
-              rb=QgsRubberBand(iface.mapCanvas(),QgsWkbTypes.PointGeometry )
-              rb.setColor ( QtCore.Qt.red )
+              rb=QgsRubberBand(iface.mapCanvas(),QgsWkbTypes.GeometryType.PointGeometry )
+              rb.setColor ( QColor("red") )
               point0 = self.canvas.getCoordinateTransform().toMapCoordinates(x, y)
               rb.addPoint(point0)  
   
@@ -96,7 +110,7 @@ class PointTool(QgsMapTool):
               global premuto,point0,point1,linea,rl
               if premuto:
                if not linea:              
-                rl.setColor ( QtCore.Qt.red )
+                rl.setColor ( QColor("red") )
                 point1 = self.canvas.getCoordinateTransform().toMapCoordinates(x, y)
                 rl.addPoint(point0)  
                 rl.addPoint(point1)

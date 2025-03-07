@@ -32,6 +32,7 @@ try:
     import cv2
     import numpy as np
     from matplotlib import pyplot as plt
+
     opencv = True
 except:
     opencv = False
@@ -186,6 +187,7 @@ class PhotoWindow(QWidget):
         self.allpicturesImpath = {}  # feature id / picture path
         self.allpicturesAzimuth = {}
         self.allpicturesName = {}
+        self.allpicturesLink = {}
         for i, f in enumerate(self.drawSelf.layerActive.getFeatures()):
             attributes = f.attributes()
             if 'PATH' in self.drawSelf.fields:
@@ -224,12 +226,18 @@ class PhotoWindow(QWidget):
             except:
                 azimuth = None
 
+            try:
+                link = attributes[f.fieldNameIndex('Link')]
+            except:
+                link = None
+
             self.allpictures[f.id()] = name_
             self.allpicturesdates[f.id()] = dateTrue
             self.allpicturestimes[f.id()] = timeTrue
             self.allpicturesImpath[f.id()] = imPath
             self.allpicturesAzimuth[f.id()] = azimuth
             self.allpicturesName[f.id()] = name_
+            self.allpicturesLink[f.id()] = link
 
         self.viewer = PhotosViewer(self)
 
@@ -309,17 +317,21 @@ class PhotoWindow(QWidget):
         self.add_window_place = QLabel(self)  # temporary
         self.add_window_place.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum))
         self.add_window_place.setFrameShape(QFrame.NoFrame)
+        self.add_window_place.setOpenExternalLinks(True)  # To make link clickable
 
         self.infoPhoto1 = QLabel(self)
-        self.infoPhoto1.setSizePolicy(sizePolicy)
+        self.infoPhoto1.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum))
+        self.infoPhoto1.setStyleSheet("background-color: lightgray;")  # Light gray close to white
         self.infoPhoto1.setFrameShape(QFrame.Box)
 
         self.infoPhoto2 = QLabel(self)
-        self.infoPhoto2.setSizePolicy(sizePolicy)
+        self.infoPhoto2.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum))
+        self.infoPhoto2.setStyleSheet("background-color: lightgray;")  # Light gray close to white
         self.infoPhoto2.setFrameShape(QFrame.Box)
 
         self.infoPhoto3 = QLabel(self)
-        self.infoPhoto3.setSizePolicy(sizePolicy)
+        self.infoPhoto3.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum))
+        self.infoPhoto3.setStyleSheet("background-color: lightgray;")  # Light gray close to white
         self.infoPhoto3.setFrameShape(QFrame.Box)
 
         self.extent = QPushButton(self)
@@ -683,8 +695,11 @@ class PhotoWindow(QWidget):
         self.infoPhoto2.setText(
             self.tr('Time: ') + self.allpicturestimes[self.drawSelf.featureIndex][0:8])
         self.infoPhoto3.setText(self.tr('Layer: ') + self.drawSelf.layerActiveName)
-        self.add_window_place.setText(self.allpicturesName[self.drawSelf.featureIndex])
-
+        link = self.allpicturesLink[self.drawSelf.featureIndex]
+        header = self.allpicturesName[self.drawSelf.featureIndex]
+        if link is not None:
+            header = f'<a href="{link}">{header}</a>'
+        self.add_window_place.setText(header)
         azimuth = self.allpicturesAzimuth[self.drawSelf.featureIndex]
         if type(azimuth) is str:
             try:

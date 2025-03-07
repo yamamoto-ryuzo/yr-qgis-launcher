@@ -14,11 +14,17 @@ tracker=https://github.com/3liz/lizmap-plugin/issues
 repository=https://github.com/3liz/lizmap-plugin
 
 # Done automatically by qgis-plugin-ci
-version=4.4.6
+version=4.4.7
 commitNumber=1
-commitSha1=f4899817428588977612781f9816f33d6daa7f12
-dateTime=2024-12-10T13:33:10Z
+commitSha1=f764f2d830fbbef507f9e2d17b3b51af22682eed
+dateTime=2025-02-14T15:13:59Z
 changelog=
+ Version 4.4.7:
+ * Add tip about trailing/leading white space
+ * Better support for QJazz
+ * Raise to QGIS Server 3.34 for Lizmap Cloud customers
+ * Temporary remove the Qt6 compatibility
+
  Version 4.4.6:
  * Rephrase sentences about print layouts
  * Check for raster layer using AuthDB if needed
@@ -31,10 +37,6 @@ changelog=
  * Fix export of modules etc. in the markdown
  * Do not notify Lizmap Cloud users if the instance is not up to date
 
- Version 4.4.4:
- * Add new settings about maximum scales when zooming on points, lines or polygons, for Lizmap Web Client 3.9
- * Temporary disable the "duplicated layer with different filters check"
-
 
 # End of qgis-plugin-ci
 
@@ -42,4 +44,4 @@ icon=resources/icons/icon.png
 experimental=False
 deprecated=False
 server=False
-supportsQt6=true
+supportsQt6=false
