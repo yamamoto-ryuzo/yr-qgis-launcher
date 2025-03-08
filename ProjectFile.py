@@ -12,7 +12,8 @@
 # EXE作成
 #　ディレクトリは適宜変更
 # cd C:\github\yr-qgis-launcher
-# pyinstaller ProjectFile.py --onefile --noconsole --distpath ./ --clean
+# del C:\github\yr-qgis-launcher\ProjectFile.exe
+# pyinstaller ProjectFile.py --onefile --noconsole --distpath ./ --clean --name ProjectFile
 #　完成したらC:\GoogleDrive\github\yr-qgis-portable-launcher2\QGIS_portable\ProjectFile.exeとかメッセージが出て完成
   
 #デバッグ時の注意事項
