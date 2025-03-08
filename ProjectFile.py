@@ -145,7 +145,7 @@ def check_folder_exists(folder_path):
 ####################
 #  MAINプログラム  #
 ###################
-def main():
+def main(selected_project_file=None):
     ############################
     #   設定ファイルの読み込み   #
     ############################
@@ -160,6 +160,9 @@ def main():
     # デバック時は　python.config となるので注意！
     # QGISのプロジェクトファイルを設定ファイルから読み込む
     qgis_project_file, qgisconfig_folder , VirtualDrive = read_qgis_project_file_from_config(file_name)
+    # 選択されたプロジェクトファイルがある場合はそれを使用
+    if selected_project_file:
+        qgis_project_file = os.path.join('ProjectFiles', selected_project_file)
     print (f"qgis_project_fileを設定しました：{qgis_project_file}")
 
 
@@ -241,8 +244,8 @@ if __name__ == "__main__":
     ################
     #  認証を実施   #
     ################
-    logged_in_user,user_role,exeQGIS,selected_profile= auth.run_login()
-    print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 実行するQGIS： {exeQGIS},プロファイル：{selected_profile}")
+    logged_in_user, user_role, exeQGIS, selected_profile, selected_project_file = auth.run_login()
+    print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 実行するQGIS： {exeQGIS},プロファイル：{selected_profile}, プロジェクトファイル: {selected_project_file}")
     # 環境変数などの設定
     setting = '../ini/qgis_global_settings.ini'
     # 関数を呼び出して値を書き込む
@@ -253,8 +256,8 @@ if __name__ == "__main__":
     if logged_in_user:
         print(f"ログインに成功しました。ユーザー名: {logged_in_user}")
         auth.save_username_to_ini(logged_in_user)
-        main()
+        main(selected_project_file)
     else:
         print("ログインに失敗しました。")
 
-   
+

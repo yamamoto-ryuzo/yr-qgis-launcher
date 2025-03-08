@@ -49,10 +49,18 @@ def get_associated_app(extension):
 def open_qgis_website():
     webbrowser.open("https://qgis.org/")
 
+def get_qgis_project_files(directory):
+    """指定されたディレクトリ内のQGISプロジェクトファイル（.qgs, .qgz）の一覧を取得する"""
+    project_files = []
+    for file in os.listdir(directory):
+        if file.endswith('.qgs') or file.endswith('.qgz'):
+            project_files.append(file)
+    return project_files
+
 def create_login_window():
     root = tk.Tk()
     root.title("ログインフォーム")
-    center_window(root, 300, 260)
+    center_window(root, 300, 300)
 
     login_attempts = 0
     max_attempts = 10
@@ -60,6 +68,7 @@ def create_login_window():
     user_role = None
     selected_version = None
     selected_profile = None
+    selected_project_file = None
 
     def focus_password(event):
         password_entry.focus()
@@ -74,7 +83,7 @@ def create_login_window():
         login_button.focus()
 
     def validate_login(event=None):
-        nonlocal login_attempts, logged_in_user, user_role, selected_version, selected_profile
+        nonlocal login_attempts, logged_in_user, user_role, selected_version, selected_profile, selected_project_file
 
         entered_username = username_entry.get()
         entered_password = password_entry.get()
@@ -101,6 +110,7 @@ def create_login_window():
             messagebox.showinfo("ログイン成功", f"ようこそ、{entered_username}さん!\n あなたの権限は {valid_user['userrole']}です。\n 選択されたバージョン: {version_combo.get()}\n 選択されたプロファイル: {selected_profile}")
             logged_in_user = entered_username
             user_role = valid_user['userrole']
+            selected_project_file = project_combo.get()
             root.quit()
         else:
             login_attempts += 1
@@ -149,6 +159,17 @@ def create_login_window():
             os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps', 'grass')
         return versions
 
+    # ================ プロジェクトファイルの選択 ===================
+    tk.Label(root, text="プロジェクトファイル選択:").pack()
+    project_var = tk.StringVar()
+    project_files = get_qgis_project_files('ProjectFiles')
+    project_combo = ttk.Combobox(root, textvariable=project_var)
+    project_combo['values'] = project_files
+    if project_files:
+        project_combo.current(0)
+    project_combo.pack()
+    project_combo.bind('<Return>', focus_login_button)
+
     tk.Label(root, text="ユーザー名:").pack()
     username_entry = tk.Entry(root)
     username_entry.insert(0, get_username_from_auth_ini())
@@ -181,7 +202,7 @@ def create_login_window():
     profile_combo.pack()
     profile_combo.bind('<Return>', focus_login_button)
 
-    login_button = tk.Button(root, text="ログイン", command=validate_login)
+    login_button = tk.Button(root, text="ログイン", command=validate_login, width=20, height=2)
     login_button.pack(pady=10)
     login_button.bind('<Return>', validate_login)
 
@@ -191,7 +212,7 @@ def create_login_window():
 
     username_entry.focus()
     root.mainloop()
-    return logged_in_user, user_role, selected_version, selected_profile
+    return logged_in_user, user_role, selected_version, selected_profile, selected_project_file
 
 def save_username_to_ini(username):
     config = configparser.ConfigParser()
@@ -203,9 +224,9 @@ def run_login():
     return create_login_window()
 
 if __name__ == "__main__":
-    logged_in_user, user_role, selected_version, selected_profile = run_login()
+    logged_in_user, user_role, selected_version, selected_profile, selected_project_file = run_login()
     if logged_in_user:
-        print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 選択されたバージョン: {selected_version}, プロファイル：{selected_profile}")
+        print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 選択されたバージョン: {selected_version}, プロファイル：{selected_profile}, プロジェクトファイル: {selected_project_file}")
         save_username_to_ini(logged_in_user)
     else:
         print("ログインに失敗しました。")
