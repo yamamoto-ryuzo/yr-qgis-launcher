@@ -1,5 +1,8 @@
 # 初めての人でも扱いやすいポータブルQGIS環境の構築
-
+  ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。  
+  [システム最新版　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/archive/refs/heads/main.zip)  
+  [システム　　　　一式 ポータブル版QGISver3.42.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
+  [システム　　　　一式 ポータブル版QGISver3.40.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)  
 ## 起動画面
 ![image](https://github.com/user-attachments/assets/881f16f4-0e6d-459b-90b2-bcc51b3c63af)
 #### 【auth.config】ファイルが存在しない場合は、認証が不要になります
@@ -20,11 +23,6 @@
 　　VirtualDrive=Q:  
 　　により仮想ドライブを指定してください。  
 　　その他の項目は任意です。  
-
-  ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。  
-  [システム最新版　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/archive/refs/heads/main.zip)  
-  [システム　　　　一式 ポータブル版QGISver3.42.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
-  [システム　　　　一式 ポータブル版QGISver3.40.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)  
 
 ## QGISランチャーコンセプト
 
