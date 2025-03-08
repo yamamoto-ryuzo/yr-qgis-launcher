@@ -1,5 +1,5 @@
 # 初めての人でも扱いやすいポータブルQGIS環境の構築
-  ランチャー導入により、QGISのDVD納品・統一環境の構築等に可能となります。  
+  ランチャー導入により、QGISのDVD納品・統一環境の構築等が可能となります。  
   [システム最新版　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/archive/refs/heads/main.zip)  
   [システム　　　　一式 ポータブル版QGISver3.42.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
   [システム　　　　一式 ポータブル版QGISver3.40.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)  
