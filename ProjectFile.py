@@ -247,8 +247,6 @@ if __name__ == "__main__":
     ################
     logged_in_user, user_role, exeQGIS, selected_display_version , selected_profile, selected_project_file = auth.run_login()
     print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 実行するQGIS： {exeQGIS},プロファイル：{selected_profile}, プロジェクトファイル: {selected_project_file}")
-    # 環境変数などの設定
-    # setting = '../ini/qgis_global_settings.ini'
     # ユーザーインファーフェイスのカスタマイズ
     customUI = '../ini/' + user_role + 'UI_customization.ini'
     if logged_in_user:
