@@ -4,7 +4,7 @@
   [システム　　　　一式 ポータブル版QGISver3.42.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
   [システム　　　　一式 ポータブル版QGISver3.40.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)  
 ## 起動画面
-![image](https://github.com/user-attachments/assets/881f16f4-0e6d-459b-90b2-bcc51b3c63af)
+![image](https://github.com/user-attachments/assets/5ad29300-a911-4f92-820b-28bad06353bb)
 #### 【auth.config】ファイルが存在しない場合は、認証が不要になります
 
 ［標準設定］  
@@ -34,23 +34,19 @@
   ![image](https://github.com/user-attachments/assets/20c4a48d-7de1-49c4-9e45-f1da5e1fd8af)  
 
 ## QGISランチャー
-
     ProjectFile.exe を起動してください。  
-    /ProjectFiles/ProjectFile.qgs が起動します。  
-    　EXEはファイル名を変えることで、同じ名称のqgsファイルを起動します。  
-    例）test.exe　に　変更すると　test.qgs が起動します  
-    ※拡張子はLIZMAP連携のためQGSを利用しています。  
-
+    フォルダ　/ProjectFiles/　内に設置された　拡張子.qgs .qgz　を選択できるので選択してください。
 （フォルダー構成）  
 　QGISポータブル版を私の趣味により統一環境として組込済のプラグインを含んでいます。    
 　WindowsのProjectFile.exeです。  
 
 　/ルードフォルダ  
 　　ProjectFile.exe ----------------　ランチャー本体  
-　　/QGIS各バージョン/qgis ----------　QGISポータブル版本体  
+　　/QGIS各バージョン/qgis ----------　QGISポータブル版本体 
+  　/ini----------------------------　初期設定ファイルが設置されています 
 　　/portable_profile---------------　各種共通設定ファイルを含んだコンフィグファイル  
 　　/ProjectFiles-------------------　初期設定がされたプロジェクトファイルを保存するフォルダ  
-　　/ProjectFiles/data--------------　プロジェクトファイルで利用しているオープンデータを保存するフォルダ(Lizmapの仕様)  
+　　/ProjectFiles/data--------------　プロジェクトファイルで利用しているオープンデータを保存するフォルダ(Lizmapの仕様) 
 
 　英数字のみからなるフォルダに解凍してください。  
 　日本語を含むフォルダはエラーになります。  
