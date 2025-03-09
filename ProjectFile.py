@@ -245,18 +245,14 @@ if __name__ == "__main__":
     ################
     #  認証を実施   #
     ################
-    logged_in_user, user_role, exeQGIS, selected_profile, selected_project_file = auth.run_login()
+    logged_in_user, user_role, exeQGIS, selected_display_version , selected_profile, selected_project_file = auth.run_login()
     print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 実行するQGIS： {exeQGIS},プロファイル：{selected_profile}, プロジェクトファイル: {selected_project_file}")
     # 環境変数などの設定
-    setting = '../ini/qgis_global_settings.ini'
-    # 関数を呼び出して値を書き込む
-    write_to_ini('./ini/qgis_global_settings.ini', logged_in_user, user_role)
-
+    # setting = '../ini/qgis_global_settings.ini'
     # ユーザーインファーフェイスのカスタマイズ
     customUI = '../ini/' + user_role + 'UI_customization.ini'
     if logged_in_user:
         print(f"ログインに成功しました。ユーザー名: {logged_in_user}")
-        auth.save_username_to_ini(logged_in_user)
         main(selected_project_file)
     else:
         print("ログインに失敗しました。")

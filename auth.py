@@ -26,23 +26,12 @@ def center_window(window, width, height):
     y = (screen_height // 2) - (height // 2)
     window.geometry(f'{width}x{height}+{x}+{y}')
 
-def get_username_from_auth_ini():
-    config = configparser.ConfigParser()
-    auth_ini_path = os.path.join(os.getcwd(), 'ini', 'auth.ini')
-    config.read(auth_ini_path)
-    return config.get('Auth', 'username', fallback='')
-
-def get_qgis_version_from_auth_ini():
-    config = configparser.ConfigParser()
-    auth_ini_path = os.path.join(os.getcwd(), 'ini', 'auth.ini')
-    config.read(auth_ini_path)
-    return config.get('Auth', 'qgis_version', fallback='')
-
-def save_auth_data_to_ini(username, qgis_version, user_role, selected_profile, selected_project_file):
+def save_auth_data_to_ini(username, qgis_version, qgis_display_version, user_role, selected_profile, selected_project_file):
     config = configparser.ConfigParser()
     config['Auth'] = {
         'username': username,
         'qgis_version': qgis_version,
+        'qgis_display_version': qgis_display_version,
         'user_role': user_role,
         'selected_profile': selected_profile,
         'selected_project_file': selected_project_file
@@ -79,7 +68,7 @@ def get_program_files_dir():
     try:
         app_path = get_associated_app('qgs')
         print("QGISインストール版のレジストリ登録フォルダは：", app_path)
-        if app_path:
+        if (app_path):
             # QGIS*のある前までのフォルダを取得
             qgis_folder_index = app_path.lower().find('qgis')
             if (qgis_folder_index != -1):
@@ -143,7 +132,33 @@ def get_qgis_versions():
     
     return versions
 
+def get_auth_data_from_ini():
+    config = configparser.ConfigParser()
+    auth_ini_path = os.path.join(os.getcwd(), 'ini', 'auth.ini')
+    encodings = ['utf-8', 'cp932', 'shift_jis']
+    for encoding in encodings:
+        try:
+            with open(auth_ini_path, 'r', encoding=encoding) as file:
+                config.read_file(file)
+            break
+        except UnicodeDecodeError:
+            continue
+    auth_data = {
+        'username': config.get('Auth', 'username', fallback=''),
+        'qgis_version': config.get('Auth', 'qgis_version', fallback=''),
+        'qgis_display_version': config.get('Auth', 'qgis_display_version', fallback=''),
+        'user_role': config.get('Auth', 'user_role', fallback=''),
+        'selected_profile': config.get('Auth', 'selected_profile', fallback=''),
+        'selected_project_file': config.get('Auth', 'selected_project_file', fallback='')
+    }
+    print(f"読み込んだ認証データ: {auth_data}")
+    return auth_data
+
+# グローバル変数の定義
+version_combo = None
+
 def create_login_window():
+    global version_combo
     root = tk.Tk()
     root.title("ログインフォーム")
     center_window(root, 390, 390)  # ウィンドウサイズを1.3倍に変更
@@ -153,8 +168,11 @@ def create_login_window():
     logged_in_user = None
     user_role = None
     selected_version = None
+    selected_display_version = None
     selected_profile = None
     selected_project_file = None
+
+    auth_data = get_auth_data_from_ini()
 
     def focus_password(event):
         password_entry.focus()
@@ -169,12 +187,14 @@ def create_login_window():
         login_button.focus()
 
     def validate_login(event=None):
-        nonlocal login_attempts, logged_in_user, user_role, selected_version, selected_profile, selected_project_file
+        nonlocal login_attempts, logged_in_user, user_role, selected_version, selected_display_version, selected_profile, selected_project_file
 
         entered_username = username_entry.get()
         entered_password = password_entry.get()
         selected_version_index = version_combo.current()
         selected_version = version_combo.actual_values[selected_version_index]
+        selected_display_version = version_combo.display_values[selected_version_index]
+        print(f"【選択された表示バージョン: {selected_display_version}】")
         selected_profile = profile_combo.get()
         
         try:
@@ -227,7 +247,7 @@ def create_login_window():
 
     tk.Label(root, text="ユーザー名:", font=("TkDefaultFont", 13)).pack()
     username_entry = tk.Entry(root, font=("TkDefaultFont", 13), width=39)
-    username_entry.insert(0, get_username_from_auth_ini())
+    username_entry.insert(0, auth_data['username'])
     username_entry.pack()
     username_entry.bind('<Return>', focus_password)
 
@@ -245,7 +265,7 @@ def create_login_window():
                                    actual_values=versions[1], 
                                    font=("TkDefaultFont", 13), width=39)
     print(f"バージョン選択初期設定：{version_combo['values'][0]}")
-    version_combo.set(get_qgis_version_from_auth_ini())  # 初期値を設定
+    version_combo.set(auth_data['qgis_display_version'])  # 初期値を設定
     version_combo.pack()
     version_combo.bind('<Return>', focus_profile_combo)
     
@@ -254,7 +274,7 @@ def create_login_window():
     profile_var = tk.StringVar()
     profile_combo = ttk.Combobox(root, textvariable=profile_var, font=("TkDefaultFont", 13), width=39)
     profile_combo['values'] = ('portable', 'profile強制更新')
-    profile_combo.set('portable')
+    profile_combo.set(auth_data['selected_profile'])
     profile_combo.pack()
     profile_combo.bind('<Return>', focus_login_button)
 
@@ -268,21 +288,21 @@ def create_login_window():
 
     username_entry.focus()
     root.mainloop()
-    return logged_in_user, user_role, selected_version, selected_profile, selected_project_file
-
-def save_username_to_ini(username):
-    config = configparser.ConfigParser()
-    config['Auth'] = {'username': username}
-    with open('./ini/auth.ini', 'w') as configfile:
-        config.write(configfile)
+    return logged_in_user, user_role, selected_version, selected_display_version, selected_profile, selected_project_file
 
 def run_login():
-    return create_login_window()
+    global version_combo
+    logged_in_user, user_role, selected_version, selected_display_version, selected_profile, selected_project_file = create_login_window()
+    if logged_in_user:
+        save_auth_data_to_ini(logged_in_user, selected_version, selected_display_version, user_role, selected_profile, selected_project_file)
+        # 関数を呼び出して値を書き込む
+        ProjectFile.write_to_ini('./ini/qgis_global_settings.ini', logged_in_user, user_role)
+        return logged_in_user, user_role, selected_version, selected_display_version, selected_profile, selected_project_file
+    return None, None, None, None, None, None
 
 if __name__ == "__main__":
-    logged_in_user, user_role, selected_version, selected_profile, selected_project_file = run_login()
+    logged_in_user, user_role, selected_version, selected_display_version, selected_profile, selected_project_file = run_login()
     if logged_in_user:
-        print(f"ログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 選択されたバージョン: {selected_version}, プロファイル：{selected_profile}, プロジェクトファイル: {selected_project_file}")
-        save_auth_data_to_ini(logged_in_user, selected_version, user_role, selected_profile, selected_project_file)
+        print(f"auth.py上でのログインに成功しました。ユーザー名: {logged_in_user}, 権限: {user_role}, 選択された実行バージョン: {selected_version}, 選択された表示バージョン: {selected_display_version}, プロファイル：{selected_profile}, プロジェクトファイル: {selected_project_file}")
     else:
         print("ログインに失敗しました。")
