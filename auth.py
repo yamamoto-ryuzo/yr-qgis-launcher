@@ -266,6 +266,12 @@ def create_login_window():
                                    font=("TkDefaultFont", 13), width=39)
     print(f"バージョン選択初期設定：{version_combo['values'][0]}")
     version_combo.set(auth_data['qgis_display_version'])  # 初期値を設定
+    
+    # selected_versionがコンボに無い場合は、コンボにある先頭の値にする
+    if auth_data['qgis_version'] not in version_combo.actual_values:
+        version_combo.set(version_combo.display_values[0])
+        print(f"選択されたバージョンが無効なため、先頭のバージョンに設定しました: {version_combo.display_values[0]}")
+    
     version_combo.pack()
     version_combo.bind('<Return>', focus_profile_combo)
     
