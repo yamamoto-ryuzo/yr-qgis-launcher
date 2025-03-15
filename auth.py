@@ -7,6 +7,7 @@ import os
 import configparser
 import winreg
 import webbrowser
+import subprocess
 
 # 独自インポート
 import ProjectFile
@@ -83,16 +84,39 @@ def get_program_files_dir():
         return "C:\\Program Files"
 
 def search_installed_qgis():
+    """
+    インストールされているQGISおよびQFieldの実行ファイルを検索する関数。
+    QGISおよびQFieldのインストールディレクトリを探し、バージョンごとの実行ファイルパスをリストに追加する。
+
+    Returns:
+        list: インストールされているQGISおよびQFieldの実行ファイルパスのリスト。
+    """
     qgis_executables = []
-    base_dir = get_program_files_dir()
+    base_dir = get_program_files_dir()  # プログラムファイルディレクトリを取得
     qgis_folders = [item for item in os.listdir(base_dir) if item.startswith('QGIS') and os.path.isdir(os.path.join(base_dir, item))]
+    qfield_folders = [item for item in os.listdir(base_dir) if item.startswith('QField') and os.path.isdir(os.path.join(base_dir, item))]
+    
+    # 各QGISフォルダを検索
     for folder in qgis_folders:
-        folder_path_qt5 = os.path.join(base_dir, folder, 'bin', 'qgis.bat')
-        folder_path_qt6 = os.path.join(base_dir, folder, 'bin', 'qgis-qt6.bat')
+        print(f"検索したフォルダ: {folder}")
+        folder_path_qt5 = os.path.join(base_dir, folder, 'bin', 'qgis.bat')  # QGIS 3.x (Qt5) の実行ファイルパス
+        folder_path_qt6 = os.path.join(base_dir, folder, 'bin', 'qgis-qt6.bat')  # QGIS 3.x (Qt6) の実行ファイルパス
+        
+        # 実行ファイルが存在する場合、リストに追加
         if os.path.exists(folder_path_qt5):
             qgis_executables.append(folder_path_qt5)
         if os.path.exists(folder_path_qt6):
             qgis_executables.append(folder_path_qt6)
+    
+    # 各QFieldフォルダを検索
+    for folder in qfield_folders:
+        print(f"検索したQFieldフォルダ: {folder}")
+        folder_path_qfield = os.path.join(base_dir, folder, 'usr', 'bin', 'qfield.exe')  # QFieldの実行ファイルパス
+        
+        # 実行ファイルが存在する場合、リストに追加
+        if os.path.exists(folder_path_qfield):
+            qgis_executables.append(folder_path_qfield)
+    
     return qgis_executables
 
 def get_qgis_versions():
@@ -106,9 +130,12 @@ def get_qgis_versions():
     qgis_executables = search_installed_qgis()
     for exe in qgis_executables:
         folder = os.path.basename(os.path.dirname(os.path.dirname(exe)))
-        add_column(f'インストール版 ({folder})', exe)
-        print("QGISインストール版が見つかりました：", versions[0][-1])
-        print("QGISフォルダのパス：", versions[1][-1])
+        if 'qfield' in exe.lower():
+            add_column(f'QFieldインストール版 ({folder})', exe)
+        else:
+            add_column(f'インストール版 ({folder})', exe)
+        print(f"{folder}が見つかりました：", versions[0][-1])
+        print("フォルダのパス：", versions[1][-1])
     
     # ポータブル版の確認
     qgis_folders = [item for item in os.listdir() if item.startswith('QGIS') and os.path.isdir(item)]
@@ -126,6 +153,18 @@ def get_qgis_versions():
         os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps')
         os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'bin')
         os.environ['PATH'] += os.pathsep + os.path.join(OSGEO4W_ROOT, 'apps', 'grass')
+    
+    # QFieldのポータブル版の確認
+    qfield_folders = [item for item in os.listdir() if item.startswith('QField') and os.path.isdir(item)]
+    for folder in qfield_folders:
+        DRV_LTR = os.getcwd()
+        QFIELD_ROOT = os.path.join(DRV_LTR, folder)
+        program_path = os.path.join(QFIELD_ROOT, 'usr', 'bin', 'qfield.exe')
+        add_column(f'QFieldポータブル版 ({folder})', program_path)
+        print("QFieldポータブル版が見つかりました：", versions[0][-1])
+        print("QFieldフォルダのパス：", versions[1][-1])
+        # システムパスにQField関連のフォルダを追加
+        os.environ['PATH'] += os.pathsep + os.path.join(QFIELD_ROOT, 'usr', 'bin')
     
     # バージョンを数値の大きいほうから並べる
     versions[0], versions[1] = zip(*sorted(zip(versions[0], versions[1]), key=lambda x: x[0], reverse=True))

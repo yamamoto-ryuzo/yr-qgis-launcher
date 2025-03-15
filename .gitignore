@@ -1,4 +1,5 @@
 /QGIS*
+/QField*
 .venv
 .vscode
 __pycache__
