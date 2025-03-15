@@ -1,10 +1,12 @@
-# 初めての人でも扱いやすいポータブルQGIS環境の構築
-  ランチャー導入により、QGISのDVD納品・統一環境の構築等が可能となります。  
+# 初めての人でも扱いやすいポータブルQGIS・QFiled環境の構築
+  ランチャー導入により、QGIS・QFiledのDVD納品・統一環境の構築等が可能となります。  
   [システム最新版　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/archive/refs/heads/main.zip)  
-  [システム　　　　一式 ポータブル版QGISver3.42.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
+  [システム　　　　一式 ポータブル版QGISver3.42.0+QFiled3.4.2含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
   [システム　　　　一式 ポータブル版QGISver3.40.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)  
+  [システム　　　　一式 ポータブル版QFiled3.4.2含む](https://1drv.ms/u/c/cbbfeab49e70546f/EUv4Xt-05ihEiJgXjchBc9UB7Fyjwk6Y7eJKwbiPRkcYEw?e=AMnNSe)    
 ## 起動画面
-![image](https://github.com/user-attachments/assets/5ad29300-a911-4f92-820b-28bad06353bb)
+![image](https://github.com/user-attachments/assets/a3b96028-f40d-4d57-999d-f3b12d625344)
+
 #### 【auth.config】ファイルが存在しない場合は、認証が不要になります
 
 ［標準設定］  
