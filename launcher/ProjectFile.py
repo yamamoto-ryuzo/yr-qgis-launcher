@@ -12,7 +12,6 @@
 # EXE作成
 #　ディレクトリは適宜変更
 # cd C:\github\yr-qgis-launcher\launcher
-# del C:\github\yr-qgis-launcher\launcher\ProjectFile.exe
 # pyinstaller ProjectFile.py --onefile --noconsole --distpath ./ --clean --name ProjectFile
 #　完成したら Copying bootloader EXE to C:\github\yr-qgis-launcher\launcher\ProjectFile.exe とかメッセージが出て完成
 #　exeファイルは　C:\github\yr-qgis-launcher\launcher\ProjectFile.exe　に作成される
@@ -169,7 +168,8 @@ def main(selected_project_file=None):
     qgis_project_file, qgisconfig_folder , VirtualDrive = read_qgis_project_file_from_config(file_name)
     # 選択されたプロジェクトファイルがある場合はそれを使用
     if selected_project_file:
-        qgis_project_file = os.path.join('ProjectFiles', selected_project_file)
+        qgis_project_file = selected_project_file
+        
     print (f"qgis_project_fileを設定しました：{qgis_project_file}")
 
 
@@ -209,7 +209,7 @@ def main(selected_project_file=None):
     portable_profile_path = qgisconfig_folder
     print (f"実行・ポータブルprofilesフォルダ:{portable_profile_path}")  
 
-    source_path = os.path.abspath('./portable_profile')
+    source_path = os.path.abspath('./launcher/portable_profile')
     print (f"配布用・ポータブルprofilesフォルダ:{source_path}")        
     # ポータブルプロファイルが存在しない場合にコピーする
     # 起動時に　'profile強制更新'　を選択

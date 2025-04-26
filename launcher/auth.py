@@ -65,6 +65,19 @@ def get_qgis_project_files(directory):
             project_files.append(file)
     return project_files
 
+def get_qgis_project_files_from_all_project_dirs():
+    """Projectで始まる全フォルダ内のQGISプロジェクトファイル（.qgs, .qgz）の一覧を取得する"""
+    project_files = []
+    cwd = os.getcwd()
+    for folder in os.listdir(cwd):
+        if folder.startswith('Project') and os.path.isdir(os.path.join(cwd, folder)):
+            folder_path = os.path.join(cwd, folder)
+            for file in os.listdir(folder_path):
+                if file.endswith('.qgs') or file.endswith('.qgz'):
+                    # フォルダ名も含めて返す
+                    project_files.append(os.path.join(folder, file))
+    return project_files
+
 def get_program_files_dir():
     try:
         app_path = get_associated_app('qgs')
@@ -277,7 +290,7 @@ def create_login_window():
     # ================ プロジェクトファイルの選択 ===================
     tk.Label(root, text="プロジェクトファイル選択:", font=("TkDefaultFont", 13)).pack()
     project_var = tk.StringVar()
-    project_files = get_qgis_project_files('ProjectFiles')
+    project_files = get_qgis_project_files_from_all_project_dirs()
     project_combo = ttk.Combobox(root, textvariable=project_var, font=("TkDefaultFont", 13), width=39)
     project_combo['values'] = project_files
     if project_files:
