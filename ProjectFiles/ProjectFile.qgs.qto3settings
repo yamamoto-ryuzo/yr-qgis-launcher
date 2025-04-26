@@ -9,10 +9,6 @@
         "enabled": true,
         "groups": []
       },
-      "3Dtest_ef91d286_83be_46db_8977_d655fc0731c9": {
-        "enabled": true,
-        "groups": []
-      },
       "3_______1km____5e222f5c_c8d0_4b33_996e_8d95dc798a12": {
         "enabled": true,
         "groups": []
@@ -53,6 +49,10 @@
         "enabled": true,
         "groups": []
       },
+      "new_layer_c443a7a4_5d1b_4d10_a5bb_c72852924d3a": {
+        "enabled": true,
+        "groups": []
+      },
       "point_letter__65d4840b_d16a_4a0b_a5f0_e1ab9abd8cf1": {
         "enabled": true,
         "groups": []
@@ -61,6 +61,89 @@
     "repeat": false
   },
   "LAYERS": [
+    {
+      "geomType": 3,
+      "layerId": "new_layer_c443a7a4_5d1b_4d10_a5bb_c72852924d3a",
+      "name": "sample — new_layer",
+      "properties": {
+        "checkBox_Clickable": true,
+        "checkBox_Clip": true,
+        "checkBox_ExportAttrs": false,
+        "checkBox_Label": true,
+        "checkBox_Outline": true,
+        "checkBox_Underline": false,
+        "checkBox_Visible": true,
+        "colorButton_BgColor": [
+          255,
+          255,
+          255,
+          176
+        ],
+        "colorButton_ConnColor": [
+          192,
+          192,
+          208,
+          255
+        ],
+        "colorButton_Label": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "colorButton_OtlColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "comboBox_FontFamily": "sans-serif",
+        "comboBox_ObjectType": "Polygon",
+        "comboBox_altitudeMode": null,
+        "comboEdit_Color": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 2
+        },
+        "comboEdit_Color2": {
+          "comboData": null,
+          "comboText": "None",
+          "editText": "",
+          "type": 7
+        },
+        "comboEdit_FilePath": {},
+        "comboEdit_Opacity": {
+          "comboData": 1,
+          "comboText": "Feature style",
+          "editText": "",
+          "type": 5
+        },
+        "comboEdit_altitude2": {},
+        "expression_Label": "\"fid\"",
+        "fieldExpressionWidget_altitude": "0",
+        "geomWidget0": {},
+        "geomWidget1": {},
+        "geomWidget2": {},
+        "geomWidget3": {},
+        "geomWidget4": {},
+        "groupBox_Background": true,
+        "groupBox_Conn": true,
+        "labelHeightWidget": {
+          "comboData": 1,
+          "comboText": "Relative",
+          "editText": "50",
+          "type": 6
+        },
+        "lineEdit_Name": "",
+        "mtlWidget0": {},
+        "mtlWidget1": {},
+        "radioButton_IntersectingFeatures": true,
+        "radioButton_zValue": true,
+        "slider_FontSize": 3
+      },
+      "visible": true
+    },
     {
       "geomType": 1,
       "layerId": "DM_C_e155b9a9_9c15_4ad6_bed8_60341174445f",
@@ -147,7 +230,7 @@
         "radioButton_IntersectingFeatures": true,
         "slider_FontSize": 3
       },
-      "visible": true
+      "visible": false
     },
     {
       "geomType": 1,
@@ -235,90 +318,7 @@
         "radioButton_IntersectingFeatures": true,
         "slider_FontSize": 3
       },
-      "visible": true
-    },
-    {
-      "geomType": 3,
-      "layerId": "3Dtest_ef91d286_83be_46db_8977_d655fc0731c9",
-      "name": "3Dtest",
-      "properties": {
-        "checkBox_Clickable": true,
-        "checkBox_Clip": true,
-        "checkBox_ExportAttrs": true,
-        "checkBox_Label": false,
-        "checkBox_Outline": true,
-        "checkBox_Underline": false,
-        "checkBox_Visible": true,
-        "colorButton_BgColor": [
-          255,
-          255,
-          255,
-          176
-        ],
-        "colorButton_ConnColor": [
-          192,
-          192,
-          208,
-          255
-        ],
-        "colorButton_Label": [
-          0,
-          0,
-          0,
-          255
-        ],
-        "colorButton_OtlColor": [
-          255,
-          255,
-          255,
-          255
-        ],
-        "comboBox_FontFamily": "sans-serif",
-        "comboBox_ObjectType": "Polygon",
-        "comboBox_altitudeMode": null,
-        "comboEdit_Color": {
-          "comboData": 2,
-          "comboText": "Random",
-          "editText": "\"fid\"",
-          "type": 2
-        },
-        "comboEdit_Color2": {
-          "comboData": null,
-          "comboText": "None",
-          "editText": "None",
-          "type": 7
-        },
-        "comboEdit_FilePath": {},
-        "comboEdit_Opacity": {
-          "comboData": 1,
-          "comboText": "Feature style",
-          "editText": "10",
-          "type": 5
-        },
-        "comboEdit_altitude2": {},
-        "expression_Label": "\"fid\"",
-        "fieldExpressionWidget_altitude": "",
-        "geomWidget0": {},
-        "geomWidget1": {},
-        "geomWidget2": {},
-        "geomWidget3": {},
-        "geomWidget4": {},
-        "groupBox_Background": true,
-        "groupBox_Conn": true,
-        "labelHeightWidget": {
-          "comboData": 1,
-          "comboText": "Relative",
-          "editText": "50",
-          "type": 6
-        },
-        "lineEdit_Name": "",
-        "mtlWidget0": {},
-        "mtlWidget1": {},
-        "radioButton_IntersectingFeatures": true,
-        "radioButton_zValue": true,
-        "slider_FontSize": 3
-      },
-      "visible": true
+      "visible": false
     },
     {
       "geomType": 2,
@@ -502,7 +502,7 @@
         "radioButton_IntersectingFeatures": true,
         "slider_FontSize": 3
       },
-      "visible": true
+      "visible": false
     },
     {
       "geomType": 3,
@@ -673,7 +673,7 @@
         "radioButton_IntersectingFeatures": true,
         "slider_FontSize": 3
       },
-      "visible": true
+      "visible": false
     },
     {
       "geomType": 1,
@@ -761,7 +761,7 @@
         "radioButton_IntersectingFeatures": true,
         "slider_FontSize": 3
       },
-      "visible": true
+      "visible": false
     },
     {
       "geomType": 3,
@@ -866,11 +866,11 @@
       "name": "Flat Plane",
       "properties": {
         "checkBox_Clickable": true,
-        "checkBox_Frame": false,
-        "checkBox_Sides": false,
+        "checkBox_Frame": true,
+        "checkBox_Sides": true,
         "checkBox_Tiles": false,
         "checkBox_Visible": true,
-        "checkBox_Wireframe": false,
+        "checkBox_Wireframe": true,
         "colorButton_Edge": [
           0,
           0,
@@ -906,6 +906,32 @@
       "visible": true
     }
   ],
+  "SCENE": {
+    "checkBox_FixAspectRatio": true,
+    "checkBox_Outline": false,
+    "colorButton_Color": [
+      0,
+      0,
+      0,
+      255
+    ],
+    "colorButton_Fog": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "comboBox_MaterialType": 2,
+    "comboBox_xyShift": true,
+    "groupBox_Fog": false,
+    "lineEdit_CenterX": "-20032.134894585346",
+    "lineEdit_CenterY": "-12015.398733014685",
+    "lineEdit_Height": "42.33170085485472",
+    "lineEdit_Rotation": "0",
+    "lineEdit_Width": "42.33170085485472",
+    "lineEdit_zFactor": "1.0",
+    "slider_Fog": 41
+  },
   "Version": 20800,
   "WIDGETS": {
     "NorthArrow": {

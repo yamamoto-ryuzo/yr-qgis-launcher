@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/plugins/easy_attribute_filter" >
-        <file>icon.png</file>
-    </qresource>
-</RCC>

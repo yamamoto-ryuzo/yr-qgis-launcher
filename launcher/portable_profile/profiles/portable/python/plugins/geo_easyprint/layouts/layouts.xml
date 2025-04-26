@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layouts>
+
+    <layout id="AV Standard" orientation="landscape">
+        <margins>
+            <margin>8</margin>
+            <margin>8</margin>
+            <margin>8</margin>
+            <margin>8</margin>
+        </margins>
+        <decorations>
+            <decoration type="map" offset_x="0" offset_y="0" />
+            <decoration type="title" affinity="top,center" offset_x="0" offset_y="0" font-family="MS UI Gothic" font-size="28"/>
+            <decoration type="subtitle" affinity="top,center" offset_x="0" offset_y="15" font-family="MS UI Gothic" font-size="20"/>
+<!--
+            <decoration type="legend" offset_x="2" offset_y="45" font-family="Droid Sans" font-size="10">Legende</decoration>
+-->
+
+
+            <decoration type="northarrow" affinity="top,right" offset_x="30" offset_y="10" width="20" height="20" >north-arrow_14_steering_wheel.svg</decoration>  
+
+            <decoration type="scaletext" affinity="bottom,center" offset_x="0" offset_y="15" font-family="Droid Sans" font-size="8"></decoration>
+
+        </decorations>
+    </layout>
+</layouts>
+

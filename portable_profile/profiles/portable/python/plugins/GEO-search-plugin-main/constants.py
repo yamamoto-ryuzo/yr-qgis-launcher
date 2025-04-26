@@ -1,1 +1,0 @@
-OTHER_GROUP_NAME = "その他"
