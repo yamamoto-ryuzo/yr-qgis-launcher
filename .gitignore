@@ -3,5 +3,5 @@
 .venv
 .vscode
 __pycache__
-/build
+launcher/build
 *.zip
