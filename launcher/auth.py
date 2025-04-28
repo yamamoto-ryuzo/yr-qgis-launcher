@@ -180,7 +180,11 @@ def get_qgis_versions():
         os.environ['PATH'] += os.pathsep + os.path.join(QFIELD_ROOT, 'usr', 'bin')
     
     # バージョンを数値の大きいほうから並べる
-    versions[0], versions[1] = zip(*sorted(zip(versions[0], versions[1]), key=lambda x: x[0], reverse=True))
+    if versions[0] and versions[1]:
+        versions[0], versions[1] = zip(*sorted(zip(versions[0], versions[1]), key=lambda x: x[0], reverse=True))
+        versions = [list(versions[0]), list(versions[1])]
+    else:
+        versions = [[], []]
     
     return versions
 
