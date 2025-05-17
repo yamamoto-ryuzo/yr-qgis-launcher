@@ -1,15 +1,40 @@
-# 初めての人でも扱いやすいポータブルQGIS・QFiled環境の構築
-  ランチャー導入により、QGIS・QFiledのDVD納品・統一環境の構築等が可能となります。  
-  [システム最新版　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/archive/refs/heads/main.zip)  
-  [システム　　　　一式 ポータブル版QGISver3.42.0+QFiled3.4.2含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
-  [システム　　　　一式 ポータブル版QGISver3.40.0含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)  
-  [システム　　　　一式 ポータブル版QFiled3.4.2含む](https://1drv.ms/u/c/cbbfeab49e70546f/EUv4Xt-05ihEiJgXjchBc9UB7Fyjwk6Y7eJKwbiPRkcYEw?e=AMnNSe)    
+# ポータブルQGIS・QField環境ランチャー
+
+QGIS・QFieldのポータブル環境を簡単に構築・配布できるランチャーです。DVD納品や統一環境の展開に最適です。
+
+---
+
+## ダウンロード
+
+- [最新版（GitHub）](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/archive/refs/heads/main.zip)
+- [QGIS 3.42.0 + QField 3.4.2 ポータブル版](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)
+- [QGIS 3.40.0 ポータブル版](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)
+- [QField 3.4.2 ポータブル版](https://1drv.ms/u/c/cbbfeab49e70546f/EUv4Xt-05ihEiJgXjchBc9UB7Fyjwk6Y7eJKwbiPRkcYEw?e=AMnNSe)
+
+---
+
 ## 起動画面
+
 ![image](https://github.com/user-attachments/assets/a3b96028-f40d-4d57-999d-f3b12d625344)
 
-#### 【auth.config】ファイルが存在しない場合は、認証が不要になります
+---
 
-［標準設定］  
+## セットアップ・使い方
+
+1. **ダウンロードしたファイルを英数字のみのパスに展開してください。**  
+   ※日本語を含むパスでは動作しません。
+
+2. `ProjectFile.exe` を実行します。
+
+3. `/ProjectFiles/` フォルダ内の `.qgs` または `.qgz` プロジェクトファイルを選択して起動します。
+
+---
+
+## 認証について
+
+- `auth.config` ファイルが存在しない場合は認証不要です。
+- 標準ユーザー設定例:
+
 | username | password | userrole      |
 | -------- | -------- | ------------- |
 | view     |          | Viewer        |
@@ -17,110 +42,76 @@
 | qgis     |          | Editor        |
 | admin    |          | Administrator |
 
-［バージョン選択］   
-　　インストール版：拡張子qgsと関連付けされているQGIS  
-　　ポータブル版：configで指定されているQGIS  
+---
 
-【ProjectFile.config】  
-　　VirtualDrive=Q:  
-　　により仮想ドライブを指定してください。  
-　　その他の項目は任意です。  
+## バージョン選択
 
-## QGISランチャーコンセプト
+- **インストール版**: 拡張子 `.qgs` に関連付けされたQGIS
+- **ポータブル版**: `config` で指定されたQGIS
 
-- 起動.EXEファイルによる、指定プロジェクトファイルの起動  
-- UIカスタマイズによる、権限別のUI設定  
-  AdministratorUI_customization.ini　EditorUI_customization.ini　ViewerUI_customization.ini　qgis_global_settings.ini  
-- startup.pyによる、権限別のレイヤ設定  
-  userrole: Viewer　に対して、「レイヤーを読み取り」に設定  
-  ![image](https://github.com/user-attachments/assets/20c4a48d-7de1-49c4-9e45-f1da5e1fd8af)  
+---
 
-## QGISランチャー
-    ProjectFile.exe を起動してください。  
-    フォルダ　/ProjectFiles/　内に設置された　拡張子.qgs .qgz　を選択できるので選択してください。
-（フォルダー構成）  
-　QGISポータブル版を私の趣味により統一環境として組込済のプラグインを含んでいます。    
-　WindowsのProjectFile.exeです。  
+## 設定ファイル例
 
-　/ルードフォルダ  
-　　ProjectFile.exe ----------------　ランチャー本体  
-　　/QGIS各バージョン/qgis ----------　QGISポータブル版本体  
-  　/ini----------------------------　初期設定ファイルが設置されています   
-　　/portable_profile---------------　各種共通設定ファイルを含んだコンフィグファイル  
-　　/ProjectFiles-------------------　初期設定がされたプロジェクトファイルを保存するフォルダ  
-　　/ProjectFiles/data--------------　プロジェクトファイルで利用しているオープンデータを保存するフォルダ(Lizmapの仕様) 
+- `ProjectFile.config`
+  ```
+  VirtualDrive=Q:
+  ```
+  ※仮想ドライブの指定。他の項目は任意。
 
-　英数字のみからなるフォルダに解凍してください。  
-　日本語を含むフォルダはエラーになります。  
+---
 
-![image](https://github.com/yamamoto-ryuzo/yr-qgis-portable-launcher2/assets/86514652/177ffbe3-654d-4d22-9f70-add09bcf0323)
+## フォルダ構成例
 
-## 統一環境として組込済のプラグイン
-### ・検索
-#### Search Layers
-https://github.com/NationalSecurityAgency/qgis-searchlayers-plugin  
-#### GEO_search
-https://github.com/yamamoto-ryuzo/GEO-search-plugin  
-### ・印刷
-#### Instant Print
-https://github.com/sourcepole/qgis-instantprint-plugin  
-#### easyinstantprint  
-公式プラグインでは日本語対応していません、下記リポジトリからダウンロードください。  
-https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint  
-#### 簡易印刷
-公式プラグインではないため、下記リポジトリからダウンロードください。  
-https://github.com/yamamoto-ryuzo/easyprint-feature-qgis3  
-#### (保留中)
-https://github.com/Orbitalnet-incs/meshprint  
-### ・レイヤー管理
-#### Layers menu from project
-https://github.com/xcaeag/MenuFromProject-Qgis-Plugin  
-### ・画面
-#### mapswipetool  
-https://github.com/lmotta/mapswipetool_plugin  
-#### ZoomView（20241228_標準機能の方が高機能になったため廃止）
-https://bitbucket.org/janzandr/zoomview/src/master/  
-### ・WEB連携
-#### Street View
-リポジトリなし  
-#### Lizmap
-https://github.com/3liz/lizmap-plugin  
-#### qgis2web
-https://github.com/qgis2web/qgis2web  
-### ・3D関連  
-#### Qgis2threejs
-https://github.com/minorua/Qgis2threejs  
-#### QuickDEM4JP  
-https://github.com/MIERUNE/QuickDEM4JP  
-#### PLATEAU QGIS Plugin
-https://github.com/Project-PLATEAU/plateau-qgis-plugin  
-### ・データ連携
-#### ExcelSync
-https://github.com/opengisch/qgis_excel_sync  
-#### Spreadsheet Layers
-https://github.com/camptocamp/QGIS-SpreadSheetLayers  
-#### MOJXML Loader
-https://github.com/MIERUNE/qgis-mojxml-plugin  
-### ・開発 
-#### Plugin Reloader
-https://github.com/borysiasty/plugin_reloader  
-#### qpip（予定）
-https://github.com/opengisch/qpip  
-### ・その他  
-#### Select Themes
-https://github.com/Amphibitus/selectThemes  
-#### QGIS-legendView
-https://github.com/yamamoto-ryuzo/QGIS-legendView  
-#### EasyAttributeFilter
-https://github.com/Orbitalnet-incs/EasyAttributeFilter  
-#### ImportPhotos  
-https://github.com/KIOS-Research/ImportPhotos/  
-#### MMQGIS
-[https://plugins.qgis.org/plugins/mmqgis/#plugin-about ](https://michaelminn.com/linux/mmqgis/)  
-#### ・補足事項  
-    .BATの改行コードをWindows用にするため　.gitattributes　を設置    
+```
+/(ルートフォルダ)
+  ProjectFile.exe                ... ランチャー本体
+  /QGIS各バージョン/qgis        ... QGISポータブル本体
+  /ini                          ... 初期設定ファイル
+  /portable_profile             ... 共通設定ファイル
+  /ProjectFiles                 ... プロジェクトファイル保存先
+  /ProjectFiles/data            ... オープンデータ保存先（Lizmap仕様）
+```
+
+---
+
+## ランチャーの特徴
+
+- EXEファイルから指定プロジェクトを直接起動
+- 権限別UIカスタマイズ（例: `AdministratorUI_customization.ini` など）
+- `startup.py` による権限別レイヤ設定（例: Viewerは「レイヤーを読み取り」）
+
+---
+
+## 組込済みプラグイン例
+
+- **検索**: [Search Layers](https://github.com/NationalSecurityAgency/qgis-searchlayers-plugin), [GEO_search](https://github.com/yamamoto-ryuzo/GEO-search-plugin)
+- **印刷**: [Instant Print](https://github.com/sourcepole/qgis-instantprint-plugin), [easyinstantprint](https://github.com/yamamoto-ryuzo/yr-qgis-easyinstantprint), [簡易印刷](https://github.com/yamamoto-ryuzo/easyprint-feature-qgis3)
+- **レイヤー管理**: [Layers menu from project](https://github.com/xcaeag/MenuFromProject-Qgis-Plugin)
+- **画面**: [mapswipetool](https://github.com/lmotta/mapswipetool_plugin)
+- **WEB連携**: [Lizmap](https://github.com/3liz/lizmap-plugin), [qgis2web](https://github.com/qgis2web/qgis2web)
+- **3D関連**: [Qgis2threejs](https://github.com/minorua/Qgis2threejs), [QuickDEM4JP](https://github.com/MIERUNE/QuickDEM4JP), [PLATEAU QGIS Plugin](https://github.com/Project-PLATEAU/plateau-qgis-plugin)
+- **データ連携**: [ExcelSync](https://github.com/opengisch/qgis_excel_sync), [Spreadsheet Layers](https://github.com/camptocamp/QGIS-SpreadSheetLayers), [MOJXML Loader](https://github.com/MIERUNE/qgis-mojxml-plugin)
+- **開発**: [Plugin Reloader](https://github.com/borysiasty/plugin_reloader)
+- **その他**: [Select Themes](https://github.com/Amphibitus/selectThemes), [QGIS-legendView](https://github.com/yamamoto-ryuzo/QGIS-legendView), [EasyAttributeFilter](https://github.com/Orbitalnet-incs/EasyAttributeFilter), [ImportPhotos](https://github.com/KIOS-Research/ImportPhotos/), [MMQGIS](https://michaelminn.com/linux/mmqgis/)
+
+---
+
+## 注意事項
+
+- `.BAT` の改行コードはWindows用です（`.gitattributes`設置済み）。
+- **日本語を含むパスでは動作しません。必ず英数字のみのパスに展開してください。**
+
+---
+
 ## 免責事項
-私のパソコンで作成され、テストされたものです。どんな災難にも責任は負いません！  
-<p align="center"> <a href="https://giphy.com/explore/free-gif" target="_blank"><img src="https://github.com/yamamoto-ryuzo/QGIS_portable_3x/raw/master/imgs/giphy.gif" width="500" title="avvio QGIS"></a>
+
+本システムは個人のPCで作成・テストされたものです。  
+ご利用によるいかなる損害も責任を負いません。
+
+<p align="center">
+  <a href="https://giphy.com/explore/free-gif" target="_blank">
+    <img src="https://github.com/yamamoto-ryuzo/QGIS_portable_3x/raw/master/imgs/giphy.gif" width="500" title="avvio QGIS">
+  </a>
 </p>
-    
+

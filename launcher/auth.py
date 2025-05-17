@@ -297,8 +297,14 @@ def create_login_window():
     project_files = get_qgis_project_files_from_all_project_dirs()
     project_combo = ttk.Combobox(root, textvariable=project_var, font=("TkDefaultFont", 13), width=39)
     project_combo['values'] = project_files
-    if project_files:
+    # selected_project_fileが存在するかどうかを確認して初期値をセット
+    selected_project_file_ini = auth_data['selected_project_file']
+    if selected_project_file_ini and selected_project_file_ini in project_files:
+        project_combo.set(selected_project_file_ini)
+    elif project_files:
         project_combo.current(0)
+    else:
+        project_combo.set('')  # 候補がない場合は空に
     project_combo.pack()
     project_combo.bind('<Return>', focus_login_button)
 

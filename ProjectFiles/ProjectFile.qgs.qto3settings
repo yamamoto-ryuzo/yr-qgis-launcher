@@ -5,6 +5,14 @@
       "groups": []
     },
     "layers": {
+      "09KD3426_3d17e32a_09d2_4caa_bca4_b48aa031382d": {
+        "enabled": true,
+        "groups": []
+      },
+      "09kd3426_d052b1b3_fd7b_40f6_996a_57032745e333": {
+        "enabled": true,
+        "groups": []
+      },
       "2_______10_____ee2e1fed_f546_4af5_8ff8_3566c9a53bd4": {
         "enabled": true,
         "groups": []
@@ -49,10 +57,6 @@
         "enabled": true,
         "groups": []
       },
-      "new_layer_c443a7a4_5d1b_4d10_a5bb_c72852924d3a": {
-        "enabled": true,
-        "groups": []
-      },
       "point_letter__65d4840b_d16a_4a0b_a5f0_e1ab9abd8cf1": {
         "enabled": true,
         "groups": []
@@ -62,14 +66,14 @@
   },
   "LAYERS": [
     {
-      "geomType": 3,
-      "layerId": "new_layer_c443a7a4_5d1b_4d10_a5bb_c72852924d3a",
-      "name": "sample — new_layer",
+      "geomType": 1,
+      "layerId": "09kd3426_d052b1b3_fd7b_40f6_996a_57032745e333",
+      "name": "09kd3426",
       "properties": {
         "checkBox_Clickable": true,
         "checkBox_Clip": true,
         "checkBox_ExportAttrs": false,
-        "checkBox_Label": true,
+        "checkBox_Label": false,
         "checkBox_Outline": true,
         "checkBox_Underline": false,
         "checkBox_Visible": true,
@@ -98,31 +102,36 @@
           255
         ],
         "comboBox_FontFamily": "sans-serif",
-        "comboBox_ObjectType": "Polygon",
+        "comboBox_ObjectType": "Sphere",
         "comboBox_altitudeMode": null,
         "comboEdit_Color": {
           "comboData": 1,
           "comboText": "Feature style",
-          "editText": "",
+          "editText": "\"fid\"",
           "type": 2
         },
         "comboEdit_Color2": {
           "comboData": null,
           "comboText": "None",
-          "editText": "",
+          "editText": "\"fid\"",
           "type": 7
         },
         "comboEdit_FilePath": {},
         "comboEdit_Opacity": {
           "comboData": 1,
           "comboText": "Feature style",
-          "editText": "",
+          "editText": "\"fid\"",
           "type": 5
         },
         "comboEdit_altitude2": {},
         "expression_Label": "\"fid\"",
         "fieldExpressionWidget_altitude": "0",
-        "geomWidget0": {},
+        "geomWidget0": {
+          "comboData": null,
+          "comboText": "Expression",
+          "editText": "3.62",
+          "type": 1
+        },
         "geomWidget1": {},
         "geomWidget2": {},
         "geomWidget3": {},
@@ -143,6 +152,15 @@
         "slider_FontSize": 3
       },
       "visible": true
+    },
+    {
+      "geomType": 4,
+      "layerId": "09KD3426_3d17e32a_09d2_4caa_bca4_b48aa031382d",
+      "name": "09KD3426",
+      "properties": {
+        "url": "file:///C:/Users/ryu/Downloads/ept_09KD3426/ept.json"
+      },
+      "visible": false
     },
     {
       "geomType": 1,
