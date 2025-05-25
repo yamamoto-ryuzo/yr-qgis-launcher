@@ -1,4 +1,5 @@
-# 初めての人でも扱いやすいポータブルQGIS・QFiled環境の構築
+# ポータブルQGIS・QField環境ランチャー
+
   ランチャー導入により、QGIS・QFiledのDVD納品・統一環境の構築等が可能となります。  
   [システム最新版　一式](https://github.com/yamamoto-ryuzo/yr-qgis-launcher/archive/refs/heads/main.zip)  
   [システム　　　　一式 ポータブル版QGISver3.42.0+QFiled3.4.2含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
@@ -105,4 +106,33 @@
     <img src="https://github.com/yamamoto-ryuzo/QGIS_portable_3x/raw/master/imgs/giphy.gif" width="500" title="avvio QGIS">
   </a>
 </p>
+
+---
+
+## ローカル同期＆ランチャー起動バッチ（local-launchar.bat）
+
+`local-launchar.bat`は、QGIS/QField環境をローカルPCに同期し、必要な場合のみQField*/QGIS*フォルダをバージョン判定して同期、さらに`ProjectFile.exe`を自動起動するバッチです。
+これにより、BOXなどのクラウドストレージと高速に同期した閲覧専用の動作環境を構築できます。
+
+### 主な動作
+
+1. `local-launcher\qgislocalsync.config` から同期元・同期先パス、QField/QGISバージョン情報を取得
+2. 同期先の `local-launcher\qgislocalsync.config` からローカルのバージョン情報を取得
+3. QField*/QGIS*以外のフォルダは常に同期
+4. QField*/QGIS*フォルダはバージョンが異なる場合のみ同期
+5. 同期後、同期先で `ProjectFile.exe` を自動起動
+
+### 設定ファイル例（local-launcher\qgislocalsync.config）
+
+```
+SYNC_SRC=C:\github\yr-qgis-launcher
+SYNC_DST=C:\qgis-local-launcher
+QFIELD_VERSION=3.4.2
+QGIS_VERSION=3.42.0
+```
+
+### 使い方
+
+1. `local-launcher\qgislocalsync.config` を編集し、同期元・同期先・バージョンを指定
+2. `local-launchar.bat` を実行
 
