@@ -89,26 +89,6 @@
 
 ---
 
-## 注意事項
-
-- `.BAT` の改行コードはWindows用です（`.gitattributes`設置済み）。
-- **日本語を含むパスでは動作しません。必ず英数字のみのパスに展開してください。**
-
----
-
-## 免責事項
-
-本システムは個人のPCで作成・テストされたものです。  
-ご利用によるいかなる損害も責任を負いません。
-
-<p align="center">
-  <a href="https://giphy.com/explore/free-gif" target="_blank">
-    <img src="https://github.com/yamamoto-ryuzo/QGIS_portable_3x/raw/master/imgs/giphy.gif" width="500" title="avvio QGIS">
-  </a>
-</p>
-
----
-
 ## ローカル同期＆ランチャー起動バッチ（local-launchar.bat）
 
 `local-launchar.bat`は、QGIS/QField環境をローカルPCに同期し、必要な場合のみQField*/QGIS*フォルダをバージョン判定して同期、さらに`ProjectFile.exe`を自動起動するバッチです。
@@ -135,4 +115,24 @@ QGIS_VERSION=3.42.0
 
 1. `local-launcher\qgislocalsync.config` を編集し、同期元・同期先・バージョンを指定
 2. `local-launchar.bat` を実行
+
+3. ---
+
+## 注意事項
+
+- `.BAT` の改行コードはWindows用です（`.gitattributes`設置済み）。
+- **日本語を含むパスでは動作しません。必ず英数字のみのパスに展開してください。**
+
+---
+
+## 免責事項
+
+本システムは個人のPCで作成・テストされたものです。  
+ご利用によるいかなる損害も責任を負いません。
+
+<p align="center">
+  <a href="https://giphy.com/explore/free-gif" target="_blank">
+    <img src="https://github.com/yamamoto-ryuzo/QGIS_portable_3x/raw/master/imgs/giphy.gif" width="500" title="avvio QGIS">
+  </a>
+</p>
 
