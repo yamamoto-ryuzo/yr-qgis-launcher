@@ -116,7 +116,7 @@ QGIS_VERSION=3.42.0
 1. `local-launcher\qgislocalsync.config` を編集し、同期元・同期先・バージョンを指定
 2. `local-launchar.bat` を実行
 
-3. ---
+---
 
 ## 注意事項
 
