@@ -25,12 +25,18 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from qgis.core import QgsApplication, QgsMessageLog, QgsSettings, QgsTask
+from qgis.gui import QgisInterface
 from qgis.PyQt.QtCore import QCoreApplication, QFileInfo, QLocale, Qt, QTranslator, QUrl
 from qgis.PyQt.QtGui import QDesktopServices, QFont, QIcon
 from qgis.PyQt.QtWidgets import QAction, QMenu
 
 # project
-from menu_from_project.__about__ import DIR_PLUGIN_ROOT, __title__, __uri_homepage__
+from menu_from_project.__about__ import (
+    DIR_PLUGIN_ROOT,
+    __icon_path__,
+    __title__,
+    __uri_homepage__,
+)
 
 # PyQGIS
 from menu_from_project.datamodel.project import Project
@@ -59,12 +65,17 @@ from menu_from_project.ui.wdg_settings import PlgOptionsFactory
 
 
 class MenuFromProject:
-
     def on_initializationCompleted(self):
         # build menu
         self.initMenus()
 
-    def __init__(self, iface):
+    def __init__(self, iface: QgisInterface) -> None:
+        """Constructor.
+
+        :param iface: An interface instance that will be passed to this class which \
+        provides the hook by which you can manipulate the QGIS application at run time.
+        :type iface: QgsInterface
+        """
         self.task = None
         self.path = QFileInfo(os.path.realpath(__file__)).path()
 
@@ -101,9 +112,16 @@ class MenuFromProject:
         self.registry = QgsApplication.instance().dataItemProviderRegistry()
         self.provider = None
 
-    @staticmethod
-    def tr(message):
-        return QCoreApplication.translate("MenuFromProject", message)
+    def tr(self, message: str) -> str:
+        """Get the translation for a string using Qt translation API.
+
+        :param message: string to be translated.
+        :type message: str
+
+        :returns: Translated version of message.
+        :rtype: str
+        """
+        return QCoreApplication.translate(self.__class__.__name__, message)
 
     # TODO: until a log manager is implemented
     @staticmethod
@@ -132,6 +150,7 @@ class MenuFromProject:
             self.tr("Load projects menu configuration"),
             self.load_all_project_config,
             on_finished=self.project_config_loaded,
+            flags=QgsTask.Flag.Silent,
         )
 
         QgsApplication.taskManager().addTask(self.task)
@@ -395,7 +414,6 @@ class MenuFromProject:
 
         # Create action or menu for each version
         for version, format_list in layer_dict.items():
-
             version_label = version if version else self.tr("Latest")
             version_menu = all_version_menu.addMenu(version_label)
 
@@ -455,7 +473,7 @@ class MenuFromProject:
 
             # menu item - Main
             self.action_project_configuration = QAction(
-                QIcon(str(DIR_PLUGIN_ROOT / "resources/menu_from_project.png")),
+                QIcon(f"{__icon_path__.resolve()}"),
                 self.tr("Projects configuration"),
                 self.iface.mainWindow(),
             )

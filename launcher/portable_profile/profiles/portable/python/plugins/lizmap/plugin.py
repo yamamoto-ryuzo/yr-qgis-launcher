@@ -458,6 +458,7 @@ class Lizmap:
         ]
         self.lwc_versions[LwcVersions.Lizmap_3_9] = [
             self.dlg.group_box_max_scale_zoom,
+            self.dlg.children_lizmap_features_table,
         ]
         self.lwc_versions[LwcVersions.Lizmap_3_10] = [
         ]
@@ -539,7 +540,8 @@ class Lizmap:
         self.layer_options_list['popupFrame']['widget'] = self.dlg.frame_layer_popup
         self.layer_options_list['popupTemplate']['widget'] = None
         self.layer_options_list['popupMaxFeatures']['widget'] = self.dlg.sbPopupMaxFeatures
-        self.layer_options_list['popupDisplayChildren']['widget'] = self.dlg.cbPopupDisplayChildren
+        self.layer_options_list['children_lizmap_features_table']['widget'] = self.dlg.children_lizmap_features_table
+        self.layer_options_list['popupDisplayChildren']['widget'] = self.dlg.popup_display_children
         self.layer_options_list['popup_allow_download']['widget'] = self.dlg.checkbox_popup_allow_download
         self.layer_options_list['groupAsLayer']['widget'] = self.dlg.cbGroupAsLayer
         self.layer_options_list['baseLayer']['widget'] = self.dlg.cbLayerIsBaseLayer
@@ -706,6 +708,8 @@ class Lizmap:
                     control.textChanged.connect(slot)
                 elif item['wType'] == 'checkbox':
                     control.stateChanged.connect(slot)
+                elif item['wType'] == 'radio':
+                    control.toggled.connect(slot)
                 elif item['wType'] == 'list':
                     control.currentIndexChanged.connect(slot)
                 elif item['wType'] == 'layers':
@@ -912,14 +916,14 @@ class Lizmap:
         self.dlg.name_training_folder.setPlaceholderText(self.current_login())
 
         # When a ZIP is provided for the training
-        self.dlg.path_training_folder_zip.setStorageMode(QgsFileWidget.GetDirectory)
+        self.dlg.path_training_folder_zip.setStorageMode(QgsFileWidget.StorageMode.GetDirectory)
         self.dlg.path_training_folder_zip.setDialogTitle(tr("Choose a folder to store the your data about the training"))
         self.dlg.download_training_data_zip.clicked.connect(partial(self.download_training_data_clicked, WorkshopType.ZipFile))
         self.dlg.open_training_project_zip.clicked.connect(partial(self.open_training_project_clicked, WorkshopType.ZipFile))
         self.dlg.open_training_folder_zip.clicked.connect(partial(self.open_training_folder_clicked, WorkshopType.ZipFile))
 
         # When an individual QGS file is provided for the training
-        self.dlg.path_training_folder_qgs.setStorageMode(QgsFileWidget.GetDirectory)
+        self.dlg.path_training_folder_qgs.setStorageMode(QgsFileWidget.StorageMode.GetDirectory)
         self.dlg.path_training_folder_qgs.setDialogTitle(tr("Choose a folder to store the your data about the training"))
         self.dlg.download_training_data_qgs.clicked.connect(partial(self.download_training_data_clicked, WorkshopType.IndividualQgsFile))
         self.dlg.open_training_project_qgs.clicked.connect(partial(self.open_training_project_clicked, WorkshopType.IndividualQgsFile))
@@ -1860,7 +1864,7 @@ class Lizmap:
                 if item.get('tooltip'):
                     item['widget'].setToolTip(item.get('tooltip'))
 
-                if item['wType'] == 'checkbox':
+                if item['wType'] in ('checkbox', 'radio'):
                     item['widget'].setChecked(item['default'])
                     if key in json_options:
                         item['widget'].setChecked(to_bool(json_options[key]))
@@ -2057,7 +2061,7 @@ class Lizmap:
         msg += ' ' + tr("Please open the plugin to update the Lizmap configuration file.") + ' '
         msg += prefix + ' : '
         msg += ','.join(names)
-        self.iface.messageBar().pushMessage('Lizmap', msg, level=Qgis.Warning, duration=DURATION_WARNING_BAR)
+        self.iface.messageBar().pushMessage('Lizmap', msg, level=Qgis.MessageLevel.Warning, duration=DURATION_WARNING_BAR)
 
     def layer_renamed(self, node, name: str):
         """ When a layer/group is renamed in the legend. """
@@ -2071,7 +2075,7 @@ class Lizmap:
         msg = tr(
             "The layer '{}' has been renamed. The configuration in the Lizmap <b>Layers</b> tab only must be checked."
         ).format(name)
-        self.iface.messageBar().pushMessage('Lizmap', msg, level=Qgis.Warning, duration=DURATION_WARNING_BAR)
+        self.iface.messageBar().pushMessage('Lizmap', msg, level=Qgis.MessageLevel.Warning, duration=DURATION_WARNING_BAR)
 
     def remove_layer_from_table_by_layer_ids(self, layer_ids: list):
         """
@@ -2161,9 +2165,16 @@ class Lizmap:
         # DEFAULT VALUES : layers have got more precise data
         keep_metadata = False
         if item_type == 'layer':
+            layer = self.get_qgis_layer_by_id(item_key)
+            # layer corrupted ?
+            if not layer:
+                error_msg = tr(
+                    "The layer '{}' seems invalid. Check the layer configuration."
+                ).format(item_key)
+                self.display_error(error_msg)
+                return
 
             # layer name
-            layer = self.get_qgis_layer_by_id(item_key)
             self.myDic[item_key]['name'] = layer.name()
             # title and abstract
             self.myDic[item_key]['title'] = layer.name()
@@ -2216,7 +2227,7 @@ class Lizmap:
                                 continue
 
                         # checkboxes
-                        if item['wType'] == 'checkbox':
+                        if item['wType'] in ('checkbox', 'radio'):
                             self.myDic[item_key][key] = to_bool(json_layers[json_key][key], False)
                         # spin box
                         elif item['wType'] == 'spinbox':
@@ -2437,7 +2448,7 @@ class Lizmap:
                             val['widget'].setPlainText(text)
                     elif val['wType'] == 'spinbox':
                         val['widget'].setValue(int(selected_item[key]))
-                    elif val['wType'] == 'checkbox':
+                    elif val['wType'] in ('checkbox', 'radio'):
                         val['widget'].setChecked(selected_item[key])
                         children = val.get('children')
                         if children:
@@ -2482,6 +2493,7 @@ class Lizmap:
             # Disable popup configuration for groups and raster
             # Disable QGIS popup for layer without geom
             is_vector = isinstance(layer, QgsVectorLayer)
+            # is_raster = isinstance(layer, QgsRasterLayer)
             # noinspection PyUnresolvedReferences
             has_geom = is_vector and layer.wkbType() != QgsWkbTypes.Type.NoGeometry
             self.dlg.btConfigurePopup.setEnabled(has_geom)
@@ -2539,7 +2551,7 @@ class Lizmap:
                             val['widget'].setPlainText(text)
                     elif val['wType'] == 'spinbox':
                         val['widget'].setValue(val['default'])
-                    elif val['wType'] == 'checkbox':
+                    elif val['wType'] in ('checkbox', 'radio'):
                         val['widget'].setChecked(val['default'])
                     elif val['wType'] == 'list':
 
@@ -2740,7 +2752,7 @@ class Lizmap:
             tr('Please close and reopen the dialog to display your layer in the tab "{tab_name}".').format(
                 tab_name=self.dlg.mOptionsListWidget.item(Panels.Layers).text()
             ),
-            Qgis.Warning,
+            Qgis.MessageLevel.Warning,
         )
 
     @staticmethod
@@ -2774,7 +2786,7 @@ class Lizmap:
             self.set_layer_metadata(layer_or_group_text, key)
         elif layer_option['wType'] == 'spinbox':
             self.layerList[layer_or_group_text][key] = layer_option['widget'].value()
-        elif layer_option['wType'] == 'checkbox':
+        elif layer_option['wType'] in ('checkbox', 'radio'):
             checked = layer_option['widget'].isChecked()
             self.layerList[layer_or_group_text][key] = checked
             children = layer_option.get('children')
@@ -3035,7 +3047,16 @@ class Lizmap:
             bootstrap_5=self.current_lwc_version() >= LwcVersions.Lizmap_3_9,
         )
         html_content = Tooltip.create_popup(html_content)
-        html_content += Tooltip.css()
+
+        server_metadata = self.dlg.server_combo.currentData(ServerComboData.JsonMetadata.value)
+        versions = ServerManager.split_lizmap_version(server_metadata['info']['version'])
+        if versions[0:2] <= (3, 7):
+            # LWC 3.7.X and older
+            html_content += Tooltip.css()
+        elif (3, 8, 0) <= versions[0:3] <= (3, 8, 7):
+            # LWC 3.8.0 to 3.8.6
+            html_content += Tooltip.css_3_8_6()
+
         self._set_maptip(layer, html_content)
 
     def write_project_config_file(self, lwc_version: LwcVersions, with_gui: bool = True) -> bool:
@@ -3071,7 +3092,7 @@ class Lizmap:
         clipboard = QGuiApplication.clipboard()
         clipboard.setText(data)
         self.dlg.display_message_bar(
-            tr('Copied'), tr('Your versions have been copied in your clipboard.'), level=Qgis.Success)
+            tr('Copied'), tr('Your versions have been copied in your clipboard.'), level=Qgis.MessageLevel.Success)
 
     def check_project_clicked(self):
         """ Launch the check on the current project. """
@@ -3324,7 +3345,7 @@ class Lizmap:
                         "The process is stopping, the Lizmap configuration file is not going to be generated because "
                         "some safeguards are not compatible and you are using the 'Beginner' mode. Either fix these "
                         "issues or switch to a 'Normal' mode if you know what you are doing."
-                    ), Html.P, level=Qgis.Critical)
+                    ), Html.P, level=Qgis.MessageLevel.Critical)
                 else:
                     self.dlg.log_panel.append(tr(
                         "The process is continuing but these layers might be invisible if the server is not well "
@@ -3561,7 +3582,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 tr("Blocking issue"),
                 tr("The project has at least one blocking issue. The file is not saved."),
-                Qgis.Critical,
+                Qgis.MessageLevel.Critical,
             )
 
             return False
@@ -3739,7 +3760,7 @@ class Lizmap:
         if self.dlg.widget_initial_extent.outputExtent().isNull():
             self.set_initial_extent_from_project()
 
-        # gui user defined options
+        # GUI user defined options
         for key, item in self.global_options.items():
             if item.get('widget'):
                 input_value = None
@@ -3893,11 +3914,15 @@ class Lizmap:
             # In tests, we don't have the variable set
             liz2json['options']['dataviz_drag_drop'] = self.drag_drop_dataviz.to_json()
 
-        default_background_color_index = self.existing_group(
-            self.existing_group(
-                self.project.layerTreeRoot(), GroupNames.BaseLayers), GroupNames.BackgroundColor, index=True)
-        if default_background_color_index is not None and default_background_color_index >= 0:
-            liz2json["options"]["default_background_color_index"] = default_background_color_index
+        base_layers_group = self.existing_group(self.project.layerTreeRoot(), GroupNames.BaseLayers)
+        if base_layers_group:
+            base_layers_group: QgsLayerTreeGroup
+            base_layers_group.setIsMutuallyExclusive(True, -1)
+
+            default_background_color_index = self.existing_group(
+                base_layers_group, GroupNames.BackgroundColor, index=True)
+            if default_background_color_index is not None and default_background_color_index >= 0:
+                liz2json["options"]["default_background_color_index"] = default_background_color_index
 
         if not isinstance(self.layerList, dict):
             # Wierd bug when the dialog was not having a server at the beginning
@@ -4003,7 +4028,7 @@ class Lizmap:
                         property_value = int(property_value)
                     except Exception:
                         property_value = 1
-                elif val['type'] == 'boolean':
+                elif val['type'] in ('boolean', 'radio'):
                     if not val.get('use_proper_boolean'):
                         property_value = str(property_value)
 
@@ -4261,7 +4286,7 @@ class Lizmap:
                 'Lizmap has found these layers which are ghost layers: {}. '
                 'They have been removed. You must save your project.').format(', '.join(layers))
             # noinspection PyUnresolvedReferences
-            self.iface.messageBar().pushMessage('Lizmap', message, level=Qgis.Warning, duration=DURATION_WARNING_BAR)
+            self.iface.messageBar().pushMessage('Lizmap', message, level=Qgis.MessageLevel.Warning, duration=DURATION_WARNING_BAR)
 
     def check_global_project_options(self) -> Tuple[bool, str]:
         """Checks that the needed options are correctly set : relative path, project saved, etc.
@@ -4358,7 +4383,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 'Lizmap',
                 tr('An error occurred while generating the projet, please check logs'),
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=DURATION_SUCCESS_BAR,
             )
             return
@@ -4385,7 +4410,7 @@ class Lizmap:
                 ).format(
                     path=self.dlg.cfg_file().parent.absolute(),
                 ),
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=DURATION_SUCCESS_BAR,
             )
             return
@@ -4395,7 +4420,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 'Lizmap',
                 tr('Project <a href="{}">published !</a>'.format(url)),
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=DURATION_SUCCESS_BAR,
             )
             return
@@ -4403,7 +4428,7 @@ class Lizmap:
         self.dlg.display_message_bar(
             'Lizmap',
             tr('Project file generated, but the upload has failed'),
-            level=Qgis.Warning,
+            level=Qgis.MessageLevel.Warning,
             duration=DURATION_SUCCESS_BAR,
         )
 
@@ -4452,7 +4477,7 @@ class Lizmap:
             self.dlg.log_panel.append(tr("No project or server"), Html.H2)
             self.dlg.log_panel.append(
                 tr('Either you do not have a server reachable for a long time or you do not have a project opened.'),
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
             )
             return False
 
@@ -4562,7 +4587,7 @@ class Lizmap:
                 self.iface.messageBar().pushMessage(
                     'Lizmap',
                     tr('Please do not forget to save the QGIS project before publishing your map'),
-                    level=Qgis.Warning,
+                    level=Qgis.MessageLevel.Warning,
                     duration=DURATION_WARNING_BAR
                 )
 
@@ -4571,7 +4596,7 @@ class Lizmap:
             self.iface.messageBar().pushMessage(
                 'Lizmap',
                 msg,
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=DURATION_MESSAGE_BAR
             )
             # No automatic saving, the process is finished
@@ -4615,7 +4640,7 @@ class Lizmap:
         with OverrideCursor(Qt.CursorShape.WaitCursor):
             qgis_exists, error = self.webdav.check_exists_qgs()
         if error:
-            self.iface.messageBar().pushMessage('Lizmap', error, level=Qgis.Critical, duration=DURATION_WARNING_BAR)
+            self.iface.messageBar().pushMessage('Lizmap', error, level=Qgis.MessageLevel.Critical, duration=DURATION_WARNING_BAR)
             return False, '', ''
 
         server = self.dlg.server_combo.currentData(ServerComboData.ServerUrl.value)
@@ -4643,7 +4668,7 @@ class Lizmap:
         if not flag:
             # Error while sending files
             LOGGER.error(error)
-            self.iface.messageBar().pushMessage('Lizmap', error, level=Qgis.Critical, duration=DURATION_WARNING_BAR)
+            self.iface.messageBar().pushMessage('Lizmap', error, level=Qgis.MessageLevel.Critical, duration=DURATION_WARNING_BAR)
             return False, error, ''
 
         LOGGER.debug("Webdav has been OK : {}".format(url))
@@ -4670,7 +4695,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 'Lizmap',
                 tr('The "media" directory was already existing on the server. Please check with a file browser.'),
-                level=Qgis.Info,
+                level=Qgis.MessageLevel.Info,
                 duration=DURATION_WARNING_BAR,
                 more_details=msg,
             )
@@ -4696,12 +4721,12 @@ class Lizmap:
         directory += 'media/'
         result, msg = self.webdav.make_dir(directory)
         if not result and msg:
-            self.dlg.display_message_bar('Lizmap', msg, level=Qgis.Critical, duration=DURATION_WARNING_BAR)
+            self.dlg.display_message_bar('Lizmap', msg, level=Qgis.MessageLevel.Critical, duration=DURATION_WARNING_BAR)
             return
 
         self.dlg.display_message_bar(
             'Lizmap',
-            tr('The "media" directory has been created'), level=Qgis.Success, duration=DURATION_WARNING_BAR)
+            tr('The "media" directory has been created'), level=Qgis.MessageLevel.Success, duration=DURATION_WARNING_BAR)
 
     def create_media_dir_local(self):
         """ Create the local "media" directory. """
@@ -4710,7 +4735,7 @@ class Lizmap:
         self.dlg.display_message_bar(
             'Lizmap',
             tr('The local <a href="file://{}">"media"</a> directory has been created').format(media),
-            level=Qgis.Success,
+            level=Qgis.MessageLevel.Success,
             duration=DURATION_WARNING_BAR,
         )
 
@@ -4726,7 +4751,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 'Lizmap',
                 tr('Path not starting by "media/"'),
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=DURATION_WARNING_BAR
             )
             return
@@ -4736,7 +4761,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 'Lizmap',
                 tr('Path does not exist'),
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=DURATION_WARNING_BAR
             )
             return
@@ -4745,7 +4770,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 'Lizmap',
                 tr('Path is not a file'),
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=DURATION_WARNING_BAR
             )
             return
@@ -4753,14 +4778,14 @@ class Lizmap:
         with OverrideCursor(Qt.CursorShape.WaitCursor):
             result, message = self.webdav.send_media(current_file)
         if not result and message:
-            self.dlg.display_message_bar('Lizmap', message, level=Qgis.Critical, duration=DURATION_WARNING_BAR)
+            self.dlg.display_message_bar('Lizmap', message, level=Qgis.MessageLevel.Critical, duration=DURATION_WARNING_BAR)
             return
 
         msg = tr("File send")
         self.dlg.display_message_bar(
             'Lizmap',
             f'<a href="{self.webdav.media_url(current_path)}">{msg}</a>',
-            level=Qgis.Success,
+            level=Qgis.MessageLevel.Success,
             duration=DURATION_WARNING_BAR,
         )
         return
@@ -4770,7 +4795,7 @@ class Lizmap:
         with OverrideCursor(Qt.CursorShape.WaitCursor):
             result, message = self.webdav.send_thumbnail()
         if not result and message:
-            self.dlg.display_message_bar('Lizmap', message, level=Qgis.Critical, duration=DURATION_WARNING_BAR)
+            self.dlg.display_message_bar('Lizmap', message, level=Qgis.MessageLevel.Critical, duration=DURATION_WARNING_BAR)
             return
 
         if result:
@@ -4802,14 +4827,14 @@ class Lizmap:
         with OverrideCursor(Qt.CursorShape.WaitCursor):
             result, error = self.webdav.send_action()
         if not result and error:
-            self.dlg.display_message_bar('Lizmap', error, level=Qgis.Critical, duration=DURATION_WARNING_BAR)
+            self.dlg.display_message_bar('Lizmap', error, level=Qgis.MessageLevel.Critical, duration=DURATION_WARNING_BAR)
             return
 
         if result:
             self.dlg.display_message_bar(
                 'Lizmap',
                 tr('Upload of the action file is successful.'),
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=DURATION_WARNING_BAR
             )
             file_stats, error = self.webdav.file_stats_action()
@@ -5186,7 +5211,7 @@ class Lizmap:
                 CLOUD_NAME,
                 tr("WebDAV is not available on the instance '{}'").format(
                     self.dlg.current_server_info(ServerComboData.ServerUrl.value)),
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
             )
 
         if workshop_type == WorkshopType.IndividualQgsFile:
@@ -5232,7 +5257,13 @@ class Lizmap:
         self.dlg.display_message_bar(
             CLOUD_NAME,
             tr("Error while downloading the project : {}").format(','.join(errors)),
-            level=Qgis.Critical
+            level=Qgis.MessageLevel.Critical
+        )
+        zip_file = f"The file qgis/{TRAINING_ZIP} was maybe not found on the server ?"
+        QMessageBox.warning(
+            self.dlg,
+            tr('Training'),
+            tr('Is the training well prepared by the trainer ?') + " " + zip_file,
         )
 
     def download_completed_qgs(self):
@@ -5267,7 +5298,7 @@ class Lizmap:
             self.dlg.display_message_bar(
                 CLOUD_NAME,
                 tr("Download and extract OK about the training project"),
-                level=Qgis.Success
+                level=Qgis.MessageLevel.Success
             )
 
     def download_completed_zip(self):

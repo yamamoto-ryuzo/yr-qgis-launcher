@@ -1,6 +1,6 @@
 [general]
 name=Lizmap
-qgisMinimumVersion=3.22
+qgisMinimumVersion=3.28
 qgisMaximumVersion=3.99
 author=3Liz
 email=info@3liz.com
@@ -14,28 +14,29 @@ tracker=https://github.com/3liz/lizmap-plugin/issues
 repository=https://github.com/3liz/lizmap-plugin
 
 # Done automatically by qgis-plugin-ci
-version=4.4.7
+version=4.5.0
 commitNumber=1
-commitSha1=f764f2d830fbbef507f9e2d17b3b51af22682eed
-dateTime=2025-02-14T15:13:59Z
+commitSha1=8c25a318177cf6d58b4a2bc90b7064fd82cd743c
+dateTime=2025-04-25T13:00:14Z
 changelog=
- Version 4.4.7:
- * Add tip about trailing/leading white space
- * Better support for QJazz
- * Raise to QGIS Server 3.34 for Lizmap Cloud customers
- * Temporary remove the Qt6 compatibility
+ Version 4.5.0:
+ * Raise to minimum QGIS 3.28
+ * Enable lizmap-features-table with a radio button, Lizmap Web Client 3.9
+ * Improve PyQt6 compatibility
 
- Version 4.4.6:
- * Rephrase sentences about print layouts
- * Check for raster layer using AuthDB if needed
- * Use a recursive function to browse all group names when looking for duplicated items
- * Add a confirmation text input if the project has some "important" errors before generating CFG file, Lizmap Cloud only
+ Version 4.4.9:
+ * Always set mutually exclusive on the `baselayers` group
+ * Fix Python error when getting metadata of corrupted QGIS layer, contribution from @TeoGoddet
+ * UX :
+   * Change order between legacy field selector about tooltip, versus new HTML way of tooltip
+   * Rephrase about legend options, with LWC >= 3.7, cautious about "GetLegendGraphic" is not true anymore
+   * Attribute table tool is also for selection
+ * Server list - Make possible to reuse an existing auth from the database
+ * Skip error on a server if the connection was refused when right-clicking
 
- Version 4.4.5:
- * Add Qt6 compatibility
- * Review social networks links
- * Fix export of modules etc. in the markdown
- * Do not notify Lizmap Cloud users if the instance is not up to date
+ Version 4.4.8:
+ * Allow groups ACL for layer export capabilities, for Lizmap Web Client 3.9
+ * Popup - Update the CSS for LWC 3.8.0 to 3.8.6, do not provide CSS if higher than 3.8.7 included
 
 
 # End of qgis-plugin-ci
@@ -44,4 +45,4 @@ icon=resources/icons/icon.png
 experimental=False
 deprecated=False
 server=False
-supportsQt6=false
+supportsQt6=true

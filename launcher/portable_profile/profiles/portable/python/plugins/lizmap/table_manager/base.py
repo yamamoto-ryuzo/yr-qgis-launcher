@@ -358,7 +358,7 @@ class TableManager:
                     cell.setText('')
                     cell.setData(Qt.ItemDataRole.UserRole, False)
                     cell.setData(Qt.ItemDataRole.ToolTipRole, tr('False'))
-                cell.setTextAlignment(Qt.AlignCenter)
+                cell.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             elif input_type == InputType.Json:
                 if value:
@@ -431,7 +431,7 @@ class TableManager:
                     layout = manager.layoutByName(value)
 
                     atlas_layout = None
-                    if layout.layoutType() == QgsMasterLayoutInterface.PrintLayout:
+                    if layout.layoutType() == QgsMasterLayoutInterface.Type.PrintLayout:
                         for _print_layout in manager.printLayouts():
                             if _print_layout.name() == value:
                                 atlas_layout = _print_layout
@@ -1004,7 +1004,9 @@ class TableManager:
                     continue
 
                 value = layer.get(key)
-                if value:
+                # The value can be equal to "False".
+                # https://github.com/3liz/lizmap-plugin/issues/629
+                if value or isinstance(value, bool):
                     if definition['type'] == InputType.Layer:
                         vector_layer = self.project.mapLayer(value)
                         if not vector_layer or not vector_layer.isValid():

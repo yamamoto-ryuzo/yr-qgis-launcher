@@ -22,6 +22,7 @@ import os
 from libqfieldsync.layer import LayerSource, SyncAction
 from libqfieldsync.project import ProjectConfiguration, ProjectProperties
 from qgis.core import (
+    Qgis,
     QgsCoordinateReferenceSystem,
     QgsMapLayerProxyModel,
     QgsPolygon,
@@ -107,6 +108,7 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
 
         self.forceAutoPush.clicked.connect(self.onForceAutoPushClicked)
 
+        self.attachmentDirsListWidget.setMinimumHeight(140)
         self.attachmentDirsListWidget.itemChanged.connect(self.onItemChanged)
         self.event_eater = EventEater()
         self.attachmentDirsListWidget.installEventFilter(self.event_eater)
@@ -164,6 +166,11 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
 
         self.digitizingLogsLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.digitizingLogsLayerComboBox.setAllowEmptyLayer(True)
+
+        if Qgis.QGIS_VERSION_INT >= 32400:
+            self.layerComboBox.setProject(self.project)
+            self.geofencingLayerComboBox.setProject(self.project)
+            self.digitizingLogsLayerComboBox.setProject(self.project)
 
         self.__project_configuration = ProjectConfiguration(self.project)
 

@@ -344,8 +344,16 @@ class LizmapConfig:
             'popupMaxFeatures': {
                 'wType': 'spinbox', 'type': 'integer', 'default': 10
             },
+            'children_lizmap_features_table': {
+                'wType': 'radio',
+                'type': 'boolean',
+                'default': True,
+                'use_proper_boolean': True,
+            },
             'popupDisplayChildren': {
-                'wType': 'checkbox', 'type': 'boolean', 'default': False
+                'wType': 'radio',
+                'type': 'boolean',
+                'default': False,
             },
             'popup_allow_download': {
                 'wType': 'checkbox',
@@ -371,8 +379,7 @@ class LizmapConfig:
                         'expand_at_startup',
                         tr('Show legend image at startup'),
                         tr(
-                            'The legend image will be displayed be default at startup. This will make more request to '
-                            'QGIS server. Use with cautious.'
+                            'The legend image will be displayed be default at startup.'
                         ),
                         ':images/themes/default/mActionShowAllLayers.svg',
                     ), (

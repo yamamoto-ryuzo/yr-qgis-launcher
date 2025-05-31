@@ -95,8 +95,14 @@
        </property>
        <item>
         <widget class="QLabel" name="feedbackLabel_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>The project check provides automatic feedback for some common mistakes when using QField, QFieldSync and QFieldCloud. Lines starting with ERROR show problems in your project configuration that must be fixed before proceeding. Lines starting with WARNING are suggestions what you can improve.</string>
+          <string>The project checks provides automatic feedback for some common issues when preparing projects for QField and QFieldCloud. Find below a list of improvement suggestions and errors that must be fixed before proceeding.</string>
          </property>
          <property name="wordWrap">
            <bool>true</bool>
@@ -105,22 +111,6 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="feedbackTableWrapperLayout"/>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Preferred</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -288,6 +278,30 @@
           </widget>
          </item>
          <item>
+          <widget class="QLabel" name="localizedDatasetsUploadLabel">
+           <property name="text">
+            <string>Uploading localized datasets</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QProgressBar" name="localizedDatasetsUploadProgressBar">
+           <property name="value">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="localizedDatasetsUploadProgressFeedbackLabel">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QLabel" name="downloadLabel">
            <property name="text">
             <string>Downloading</string>
@@ -377,57 +391,6 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_7">
-         <item>
-          <layout class="QFormLayout" name="formLayout">
-           <item row="0" column="0">
-            <widget class="QLabel" name="cloudProjectNameLabel">
-             <property name="font">
-              <font>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>QFieldCloud project name</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="cloudProjectNameValueLabel">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="projectLocalDirLabel">
-             <property name="font">
-              <font>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Local project directory</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="projectLocalDirValueLineEdit">
-             <property name="styleSheet">
-              <string notr="true">[readOnly=&quot;true&quot;] {color: #808080; background-color: #F0F0F0;}</string>
-             </property>
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-       <item>
         <widget class="QLabel" name="explanationLabel">
          <property name="text">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -505,6 +468,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="uploadLocalizedDatasetsCheck">
+         <property name="text">
+          <string>Upload missing localized dataset(s)</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QPushButton" name="preferNoneButton">
@@ -528,6 +501,74 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QgsCollapsibleGroupBox" name="projectDetailsGroupBox">
+         <property name="title">
+          <string>Project Details</string>
+         </property>
+         <property name="saveCollapsedState" stdset="0">
+          <bool>true</bool>
+         </property>
+         <property name="collapsed" stdset="0">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="cloudProjectNameLabel">
+              <property name="text">
+               <string>Web page</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="cloudProjectNameValueLabel">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="projectLocalDirLabel">
+              <property name="text">
+               <string>Local directory</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <layout class="QHBoxLayout" name="localDirHBoxLayout">
+              <item>
+               <widget class="QLineEdit" name="projectLocalDirValueLineEdit">
+                <property name="styleSheet">
+                 <string notr="true">[readOnly=&quot;true&quot;] {color: palette(shadow );}</string>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="localDirOpenButton">
+                <property name="toolTip">
+                 <string>Open in external file browser</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>../resources/launch.svg</normaloff>../resources/launch.svg</iconset>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>

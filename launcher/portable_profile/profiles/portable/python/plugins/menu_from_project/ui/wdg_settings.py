@@ -1,12 +1,13 @@
 #! python3  # noqa: E265
 
 """
-    Dialog for setting up the plugin.
+Dialog for setting up the plugin.
 """
 
 # Standard library
 import uuid
 from functools import partial
+from typing import Optional
 
 # PyQGIS
 from qgis.core import QgsApplication, QgsMessageLog
@@ -14,11 +15,12 @@ from qgis.gui import QgsOptionsPageWidget, QgsOptionsWidgetFactory
 from qgis.PyQt import QtCore, uic
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QHeaderView, QMenu, QPushButton
+from qgis.PyQt.QtWidgets import QAction, QHeaderView, QMenu, QPushButton, QWidget
 
 # project
 from menu_from_project.__about__ import (
     DIR_PLUGIN_ROOT,
+    __icon_path__,
     __title__,
     __uri_homepage__,
     __version__,
@@ -46,10 +48,18 @@ FORM_CLASS, _ = uic.loadUiType(DIR_PLUGIN_ROOT / "ui/wdg_settings.ui")
 
 
 class SettingsWidget(FORM_CLASS, QgsOptionsPageWidget):
+    """Settings widget.
+
+    :param FORM_CLASS: _description_
+    :type FORM_CLASS: _type_
+
+    :param QgsOptionsPageWidget: custom QGIS widget to integrate settings as page
+    :type QgsOptionsPageWidget: QWidget
+    """
 
     settingsApplied = QtCore.pyqtSignal()
 
-    def __init__(self, parent):
+    def __init__(self, parent: Optional[QWidget]):
         super().__init__(parent)
         self.setupUi(self)
 
@@ -60,7 +70,7 @@ class SettingsWidget(FORM_CLASS, QgsOptionsPageWidget):
             self.windowTitle() + " - {} v{}".format(__title__, __version__)
         )
         self.setWindowIcon(
-            QIcon(str(DIR_PLUGIN_ROOT / "resources/menu_from_project.png")),
+            QIcon(f"{__icon_path__.resolve()}"),
         )
 
         settings = self.plg_settings.get_plg_settings()
@@ -146,13 +156,13 @@ class SettingsWidget(FORM_CLASS, QgsOptionsPageWidget):
             self._selected_project_changed
         )
         self.projectTableView.horizontalHeader().setSectionResizeMode(
-            ProjectListModel.NAME_COL, QHeaderView.Stretch
+            ProjectListModel.NAME_COL, QHeaderView.ResizeMode.Stretch
         )
         self.projectTableView.horizontalHeader().setSectionResizeMode(
-            ProjectListModel.COMMENT_COL, QHeaderView.ResizeToContents
+            ProjectListModel.COMMENT_COL, QHeaderView.ResizeMode.ResizeToContents
         )
         self.projectTableView.horizontalHeader().setSectionResizeMode(
-            ProjectListModel.LOCATION_COL, QHeaderView.ResizeToContents
+            ProjectListModel.LOCATION_COL, QHeaderView.ResizeMode.ResizeToContents
         )
         self.projectTableView.resizeColumnsToContents()
 
@@ -183,7 +193,7 @@ class SettingsWidget(FORM_CLASS, QgsOptionsPageWidget):
             row = selected_index[0].row()
             project = self.projetListModel.data(
                 self.projetListModel.index(row, ProjectListModel.NAME_COL),
-                Qt.UserRole,
+                Qt.ItemDataRole.UserRole,
             )
             self.projectWidget.set_project(project)
             self.projectWidget.enable_merge_option(row != 0)
@@ -328,7 +338,7 @@ class PlgOptionsFactory(QgsOptionsWidgetFactory):
         self.conf_widget = None
 
     def icon(self):
-        return QIcon(str(DIR_PLUGIN_ROOT / "resources/menu_from_project.png"))
+        return QIcon(f"{__icon_path__.resolve()}")
 
     def createWidget(self, parent):
         widget = SettingsWidget(parent)

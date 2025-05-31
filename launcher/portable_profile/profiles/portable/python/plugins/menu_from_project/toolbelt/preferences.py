@@ -1,7 +1,7 @@
 #! python3  # noqa: E265
 
 """
-    Plugin settings.
+Plugin settings.
 """
 
 import uuid
@@ -110,8 +110,6 @@ class PlgOptionsManager:
 
         s = QgsSettings()
 
-        dom_manager = QgsDomManager()
-
         if s.value("menu_from_project/is_setup_visible") is None:
             # This setting does not exist. We add it by default.
             s.setValue("menu_from_project/is_setup_visible", True)
@@ -203,8 +201,8 @@ class PlgOptionsManager:
                                 id=s.value("id", str(uuid.uuid4())),
                                 enable=s.value("enable", True, type=bool),
                                 comment=s.value("comment", ""),
+                                valid=s.value("valid", True, type=bool),
                             )
-                            project.valid = dom_manager.check_if_project_valid(project)
                             options.projects.append(project)
                 finally:
                     s.endArray()
@@ -219,11 +217,13 @@ class PlgOptionsManager:
 
     @classmethod
     def save_from_object(cls, plugin_settings_obj: PlgSettingsStructure):
-        """Load and return plugin settings as a dictionary. \
+        """Load and return plugin settings as a dictionary.
+
         Useful to get user preferences across plugin logic.
 
         :return: plugin settings value matching key
         """
+        dom_manager = QgsDomManager()
         s = QgsSettings()
 
         s.beginGroup("menu_from_project")
@@ -258,6 +258,7 @@ class PlgOptionsManager:
                         project.cache_config.cache_validation_uri,
                     )
                     s.setValue("comment", project.comment)
+                    s.setValue("valid", dom_manager.check_if_project_valid(project))
                     s.endGroup()
             finally:
                 s.endArray()
