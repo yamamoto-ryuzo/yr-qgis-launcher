@@ -1,5 +1,5 @@
 @echo off
-chcp 65001 >nul
+chcp 65001 >nul 2>nul
 setlocal enabledelayedexpansion
 
 REM --- BOXなどの環境変数をここで定義してください ---
@@ -11,7 +11,7 @@ REM ---------------------------------------------------
 
 REM ※このバッチファイルはUTF-8(BOMなし)で保存してください
 REM デバッグ用: 1にすると各コマンドを表示
-set DEBUG=0
+set DEBUG=1
 
 REM デバッグモードONの場合、echo onにする
 if "%DEBUG%"=="1" (
@@ -39,7 +39,6 @@ REM 設定ファイルからパスとバージョン・除外フォルダを取�
 for /f "usebackq tokens=1,2 delims==" %%A in ("%CONFIG_FILE%") do (
     set "key=%%A"
     set "value=%%B"
-    REM 環境変数を明示的に展開
     call set "value=%%value%%"
     if /i "!key!"=="SYNC_SRC" call set "SYNC_SRC=!value!"
     if /i "!key!"=="SYNC_DST" call set "SYNC_DST=!value!"
@@ -62,6 +61,14 @@ if "%SYNC_SRC%"=="" (
 )
 if "%SYNC_DST%"=="" (
     echo SYNC_DSTが設定ファイルにありません。
+    pause
+    exit /b 1
+)
+
+REM --- ここでSYNC_SRCの値を確認 ---
+echo [DEBUG] SYNC_SRC = [%SYNC_SRC%]
+if not exist "%SYNC_SRC%\" (
+    echo [ERROR] SYNC_SRCのパス "%SYNC_SRC%" が存在しません。
     pause
     exit /b 1
 )
@@ -156,26 +163,16 @@ if exist ProjectFile.exe (
 )
 popd
 
-REM デバッグ用: 主要変数の内容を表示
-if "%DEBUG%"=="1" (
-    echo 同期元: [%SYNC_SRC%]
-    echo 同期先: [%SYNC_DST%]
-    echo QFieldバージョン: [%QFIELD_VERSION%]
-    echo QGISバージョン: [%QGIS_VERSION%]
-    echo 除外フォルダ: [%EXCLUDE_DIRS%]
-    echo ローカルQFieldバージョン: [%LOCAL_QFIELD_VERSION%]
-    echo ローカルQGISバージョン: [%LOCAL_QGIS_VERSION%]
-    echo.
-)
-
-REM 各robocopy実行前にコマンド内容を表示（デバッグ時のみ）
-REM 例:
-REM if "%DEBUG%"=="1" echo robocopy "%%F" "%SYNC_DST%\%%~nxF" /MIR /Z /NP /R:2 /W:2 /NJH /NJS /MT:1
-
-REM 終了時に一時停止（デバッグ時のみ）
-if "%DEBUG%"=="1" (
-    echo.
-    echo デバッグ終了: Enterキーで閉じます
-    pause
-)
+REM 常に主要変数をエコー
+echo.
+echo 同期元: [%SYNC_SRC%]
+echo 同期先: [%SYNC_DST%]
+echo QFieldバージョン: [%QFIELD_VERSION%]
+echo QGISバージョン: [%QGIS_VERSION%]
+echo 除外フォルダ: [%EXCLUDE_DIRS%]
+echo ローカルQFieldバージョン: [%LOCAL_QFIELD_VERSION%]
+echo ローカルQGISバージョン: [%LOCAL_QGIS_VERSION%]
+echo.
+echo バッチ処理が完了しました。Enterキーで閉じます
+pause
 endlocal
