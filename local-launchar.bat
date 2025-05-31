@@ -173,6 +173,10 @@ echo 除外フォルダ: [%EXCLUDE_DIRS%]
 echo ローカルQFieldバージョン: [%LOCAL_QFIELD_VERSION%]
 echo ローカルQGISバージョン: [%LOCAL_QGIS_VERSION%]
 echo.
-echo バッチ処理が完了しました。Enterキーで閉じます
-pause
+
+REM デバッグ時のみEnterで閉じる、通常は即終了
+if "%DEBUG%"=="1" (
+    echo バッチ処理が完了しました。Enterキーで閉じます
+    pause
+)
 endlocal
