@@ -18,6 +18,8 @@
 #　exeファイルを実行すると、QGISが起動する
 #　ただし、exeファイルは環境の違いからルートへ移動のこと
 #　python.exeは、QGISのインストールフォルダに移動すること 
+#　VSCODE起動中はEXEがコマンドで削除できないのでUIから削除すること
+#　または、VSCODEを終了してから実行すること
 #　del C:\github\yr-qgis-launcher\ProjectFile.exe
 #　move C:\github\yr-qgis-launcher\launcher\ProjectFile.exe C:\github\yr-qgis-launcher\ProjectFile.exe
   
@@ -231,15 +233,15 @@ def main(selected_project_file=None):
     if not os.path.exists(qgis_project_file):
         messagebox.showerror("警告", "指定されたQGISプロジェクトファイルは存在しません。\n無視してQGISを実行します。")
 
-    # 9.6.1. コマンドラインと環境変数
-    # https://docs.qgis.org/3.34/ja/docs/user_manual/introduction/qgis_configuration.html#command-line-and-environment-variables  
-    # 標準のプロファイルは「portable」 
+    # QGISを非同期で起動し、このEXEは即終了する
     if qgis_project_file is None:
         # 引数がない場合は新しい空のプロジェクトでQGISを起動
         subprocess.Popen([exeQGIS,'--globalsettingsfile' , setting ,'--customizationfile' , customUI , '--profiles-path' , portable_profile_path , '--profile', 'portable','--code', '../launcher/processing/scripts/startup.py'], shell=True)
     else:
         # 引数がある場合は指定されたプロジェクトファイルを開く
         subprocess.Popen([exeQGIS,'--globalsettingsfile' , setting ,'--customizationfile' , customUI , '--profiles-path' , portable_profile_path , '--profile', 'portable','--code', '../launcher/processing/scripts/startup.py' , '--project' , qgis_project_file], shell=True)
+    # すぐにEXEを終了
+    sys.exit(0)
 
 
 if __name__ == "__main__":
