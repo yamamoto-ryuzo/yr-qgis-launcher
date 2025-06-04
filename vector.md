@@ -12,6 +12,11 @@
 ## 取り扱い種別(フリーソフト、シェアウェア 等)  
 　フリーソフト（寄付歓迎！）。  
 ## 動作環境  
-　別途必要なソフト　なし。  
+　別途必要なソフト　QGIS　もしくは QField  
+　システムと一式のアドレスは以下の通り  
+　　[システム　　　　一式 ポータブル版QGIS+QFiled含む](https://1drv.ms/u/c/cbbfeab49e70546f/EeP0kFMfp3hDp6NourqA9TABu9P4Ez0D6bDBP-kPdfCi2g)  
+　　[システム　　　　一式 ポータブル版QGIS含む](https://1drv.ms/u/c/cbbfeab49e70546f/Ebzf1zbg_YtPmk5HhNcgucwB6GtusI6YXNKs_MMXKNo2PA)  
+　　[システム　　　　一式 ポータブル版QFiled含む](https://1drv.ms/u/c/cbbfeab49e70546f/EUv4Xt-05ihEiJgXjchBc9UB7Fyjwk6Y7eJKwbiPRkcYEw?e=AMnNSe)  
 ## インストール・アンインストール方法  
-　アンインストール方法は、フォルダ毎ファイルを削除してください。
+　アンインストール方法は、フォルダ毎ファイルを削除してください。  
+
