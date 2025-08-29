@@ -96,7 +96,7 @@ REM 3. パスの途中に「.」や「\」の重複、末尾スペースがな�
 REM 4. ネットワークドライブやOneDrive/Box等の特殊な同期フォルダは権限やロックに注意
 
 REM トップレベルのファイルをrobocopyで同期（除外指定があれば除外）
-robocopy "%SYNC_SRC%" "%SYNC_DST%" /MIR /Z /NP /R:2 /W:2 /NJH /NJS /MT:1 /XD QField* QGIS* !EXCLUDE_DIRS!
+robocopy "%SYNC_SRC%" "%SYNC_DST%" /MIR /Z /NP /R:2 /W:2 /NJH /NJS /MT:1 /XO /XD QField* QGIS* !EXCLUDE_DIRS!
 
 REM QField*/QGIS*以外のフォルダを個別に同期（除外指定があれば除外）
 for /d %%F in ("%SYNC_SRC%\*") do (
@@ -109,7 +109,7 @@ for /d %%F in ("%SYNC_SRC%\*") do (
     )
     if !SYNC! equ 1 (
         echo フォルダコピー中: "%%F" → "%SYNC_DST%\%%~nxF"
-        robocopy "%%F" "%SYNC_DST%\%%~nxF" /MIR /Z /NP /R:2 /W:2 /NJH /NJS /MT:1
+        robocopy "%%F" "%SYNC_DST%\%%~nxF" /MIR /Z /NP /R:2 /W:2 /NJH /NJS /MT:1 /XO
         if errorlevel 8 (
             echo エラー: "%%F" のコピーに失敗しました。パスや権限、ファイル名を確認してください。
         )
@@ -122,7 +122,7 @@ if not "%QFIELD_VERSION%"=="%LOCAL_QFIELD_VERSION%" (
     set "QFIELD_SYNCED=0"
     for /d %%F in ("%SYNC_SRC%\QField*") do (
         if exist "%%F" (
-            robocopy "%%F" "%SYNC_DST%\%%~nxF" /MIR /Z /NP /R:2 /W:2
+            robocopy "%%F" "%SYNC_DST%\%%~nxF" /MIR /Z /NP /R:2 /W:2 /XO
             set "QFIELD_SYNCED=1"
         )
     )
@@ -139,7 +139,7 @@ if not "%QGIS_VERSION%"=="%LOCAL_QGIS_VERSION%" (
     set "QGIS_SYNCED=0"
     for /d %%F in ("%SYNC_SRC%\QGIS*") do (
         if exist "%%F" (
-            robocopy "%%F" "%SYNC_DST%\%%~nxF" /MIR /Z /NP /R:2 /W:2
+            robocopy "%%F" "%SYNC_DST%\%%~nxF" /MIR /Z /NP /R:2 /W:2 /XO
             set "QGIS_SYNCED=1"
         )
     )
