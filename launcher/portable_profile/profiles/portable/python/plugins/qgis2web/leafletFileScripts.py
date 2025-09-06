@@ -56,10 +56,10 @@ def writeFoldersAndFiles(pluginDir, feedback, outputProjectFileName,
         shutil.copyfile(cssDir + 'L.Control.Layers.Tree.css',
                         cssStore + 'L.Control.Layers.Tree.css')
     if address:
-        shutil.copyfile(jsDir + 'leaflet-control-geocoder.Geocoder.js',
-                        jsStore + 'leaflet-control-geocoder.Geocoder.js')
-        shutil.copyfile(cssDir + 'leaflet-control-geocoder.Geocoder.css',
-                        cssStore + 'leaflet-control-geocoder.Geocoder.css')
+        shutil.copyfile(jsDir + 'leaflet.photon.js',
+                        jsStore + 'leaflet.photon.js')
+        shutil.copyfile(cssDir + 'leaflet.photon.css',
+                        cssStore + 'leaflet.photon.css')
     if locate:
         shutil.copyfile(jsDir + 'L.Control.Locate.min.js',
                         jsStore + 'L.Control.Locate.min.js')
@@ -197,9 +197,9 @@ def writeHTMLstart(outputIndex, webpage_name, cluster_set, address, measure,
     if address:
         addressCSS = """
         <link rel="stylesheet" href="css/"""
-        addressCSS += """leaflet-control-geocoder.Geocoder.css">"""
+        addressCSS += """leaflet.photon.css">"""
         addressJS = """
-        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>"""
+        <script src="js/leaflet.photon.js"></script>"""
     else:
         addressCSS = ""
         addressJS = ""
@@ -376,6 +376,7 @@ def writeCSS(cssStore, backgroundColor, feedback, widgetAccent,
         }
         .leaflet-control {
             box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4)!important;
+            border-radius: 4px;
         }
         .leaflet-touch .leaflet-control-layers,
         .leaflet-touch .leaflet-bar,
@@ -391,17 +392,17 @@ def writeCSS(cssStore, backgroundColor, feedback, widgetAccent,
             border-top: none !important;
             color: black !important;
         }
-        .leaflet-control-search .search-button,
-        .leaflet-container .leaflet-control-search,
-        .leaflet-control-measure {
-            box-shadow: none !important;
-        }
         .leaflet-control-search .search-button {
             width: 30px !important;
             height: 30px !important;
             font-size: 13px !important;
             text-align: center !important;
-            line-height: 30px !important;
+            cursor: pointer;
+        }
+        .search-button.fa.fa-binoculars{
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .leaflet-control-measure .leaflet-control {
             width: 30px !important;
@@ -469,6 +470,11 @@ def writeCSS(cssStore, backgroundColor, feedback, widgetAccent,
         }
         .leaflet-popup-pane {
             z-index: 700;
+        }
+        #gcd-button-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }"""
         if (layersList == "Collapsed"):
             text +="""

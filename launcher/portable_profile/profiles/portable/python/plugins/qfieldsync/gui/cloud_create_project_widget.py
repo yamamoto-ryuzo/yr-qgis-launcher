@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  QFieldSync
@@ -42,7 +41,7 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.PyQt.uic import loadUiType
 
-from qfieldsync.core.cloud_api import CloudException, CloudNetworkAccessManager
+from qfieldsync.core.cloud_api import CloudNetworkAccessManager, QfcError
 from qfieldsync.core.cloud_converter import CloudConverter
 from qfieldsync.core.cloud_project import CloudProject
 from qfieldsync.core.cloud_transferrer import CloudTransferrer
@@ -72,7 +71,7 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
         parent: QWidget,
     ) -> None:
         """Constructor."""
-        super(CloudCreateProjectWidget, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.setupUi(self)
 
         self.cloud_projects_dialog = parent
@@ -108,7 +107,9 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
             self.on_use_current_project_directory_action_triggered
         )
         self.localDirButton.setMenu(QMenu())
-        self.localDirButton.setPopupMode(QToolButton.MenuButtonPopup)
+        self.localDirButton.setPopupMode(
+            QToolButton.ToolButtonPopupMode.MenuButtonPopup
+        )
         self.localDirButton.menu().addAction(self.use_current_project_directory_action)
 
         self.localDirOpenButton.clicked.connect(self.on_local_dir_open_button_clicked)
@@ -160,7 +161,7 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
             )
             return
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
         self.stackedWidget.setCurrentWidget(self.progressPage)
         self.convertProgressBar.setVisible(True)
@@ -184,7 +185,9 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
                 critical_message = self.tr(
                     "The project could not be converted into the export directory."
                 )
-                self.iface.messageBar().pushMessage(critical_message, Qgis.Critical, 0)
+                self.iface.messageBar().pushMessage(
+                    critical_message, Qgis.MessageLevel.Critical, 0
+                )
                 self.close()
                 return
 
@@ -224,7 +227,7 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
     def on_create_project_finished(self, reply):
         try:
             payload = self.network_manager.json_object(reply)
-        except CloudException as err:
+        except QfcError as err:
             QApplication.restoreOverrideCursor()
             critical_message = self.tr(
                 "QFieldCloud rejected project creation:\n{}"
@@ -260,37 +263,27 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
         self.finished.emit(project_id)
 
     def update_info_visibility(self):
-        """
-        Show the info label if there are unconfigured layers
-        """
-        localizedDataPathLayers = []
+        """Show the info label if there are unconfigured layers"""
+        localized_data_path_layers = []
         for layer in list(self.project.mapLayers().values()):
             layer_source = LayerSource(layer)
             if layer.dataProvider() is not None:
                 if layer_source.is_localized_path:
-                    localizedDataPathLayers.append(
-                        "- {} ({})".format(layer.name(), layer_source.filename)
-                    )
+                    localized_data_path_layers.append("- {}".format(layer.name()))
 
-        if localizedDataPathLayers:
-            if len(localizedDataPathLayers) == 1:
-                self.infoLocalizedLayersLabel.setText(
-                    self.tr("The layer stored in a localized data path is:\n{}").format(
-                        "\n".join(localizedDataPathLayers)
-                    )
-                )
-            else:
-                self.infoLocalizedLayersLabel.setText(
-                    self.tr(
-                        "The layers stored in a localized data path are:\n{}"
-                    ).format("\n".join(localizedDataPathLayers))
-                )
+        if localized_data_path_layers:
+            self.infoLocalizedLayersLabel.setText(
+                self.tr(
+                    "The current project relies on %n shared dataset(s), make sure to copy them into the shared datasets path of devices running QField. The layer(s) stored in a shared dataset(s) are:\n{}",
+                    "",
+                    len(localized_data_path_layers),
+                ).format("\n".join(localized_data_path_layers))
+            )
+
             self.infoLocalizedLayersLabel.setVisible(True)
-            self.infoLocalizedPresentLabel.setVisible(True)
         else:
             self.infoLocalizedLayersLabel.setVisible(False)
-            self.infoLocalizedPresentLabel.setVisible(False)
-        self.infoGroupBox.setVisible(len(localizedDataPathLayers) > 0)
+        self.infoGroupBox.setVisible(len(localized_data_path_layers) > 0)
 
     def get_unique_project_name(self, project: QgsProject) -> str:
         project_name = QgsProject.instance().title()
@@ -359,7 +352,7 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
 
             for org in payload:
                 items.append(org["username"])
-        except CloudException:
+        except QfcError:
             self.projectOwnerFeedbackLabel.setVisible(True)
             self.projectOwnerFeedbackLabel.setText(
                 self.tr("Failed to obtain the potential project owners.")
@@ -370,7 +363,7 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
         self.projectOwnerComboBox.setEnabled(True)
         self.projectOwnerRefreshButton.setEnabled(True)
 
-    def on_update_total_progressbar(self, current, layer_count, message):
+    def on_update_total_progressbar(self, current, layer_count, _message):
         self.convertProgressBar.setMaximum(layer_count)
         self.convertProgressBar.setValue(current)
 
@@ -442,7 +435,7 @@ class CloudCreateProjectWidget(QWidget, WidgetUi):
             self.set_dirname(dirname)
             self.localDirLineEdit.setText(str(Path(dirname)))
 
-    def on_dirname_line_edit_text_changed(self, text: str):
+    def on_dirname_line_edit_text_changed(self, _text: str):
         local_dir = self.localDirLineEdit.text()
         self.localDirOpenButton.setEnabled(bool(local_dir) and Path(local_dir).exists())
         self.set_dirname(local_dir)

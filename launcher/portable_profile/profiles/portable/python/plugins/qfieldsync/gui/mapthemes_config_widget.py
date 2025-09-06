@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  MapThemesConfigWidget
@@ -34,6 +33,8 @@ class MapThemesConfigWidget(QTableWidget):
 
         self.project = project
 
+        self.setAlternatingRowColors(True)
+        self.verticalHeader().setVisible(False)
         self.setMinimumHeight(200)
         self.setColumnCount(2)
         self.setHorizontalHeaderLabels(
@@ -43,10 +44,7 @@ class MapThemesConfigWidget(QTableWidget):
         self.reload(configuration)
 
     def reload(self, configuration):
-        """
-        Load map themes into table.
-        """
-
+        """Load map themes into table."""
         self.setRowCount(0)
         self.setSortingEnabled(False)
         map_themes = self.project.mapThemeCollection().mapThemes()
@@ -54,12 +52,12 @@ class MapThemesConfigWidget(QTableWidget):
             count = self.rowCount()
             self.insertRow(count)
             item = QTableWidgetItem(map_theme)
-            item.setData(Qt.EditRole, map_theme)
+            item.setData(Qt.ItemDataRole.EditRole, map_theme)
             self.setItem(count, 0, item)
 
             cmb = QgsMapLayerComboBox()
             cmb.setAllowEmptyLayer(True)
-            if Qgis.QGIS_VERSION_INT >= 32400:
+            if Qgis.versionInt() >= 32400:  # noqa: PLR2004
                 cmb.setProject(self.project)
             cmb.setFilters(QgsMapLayerProxyModel.VectorLayer)
             if map_theme in configuration:
@@ -68,14 +66,14 @@ class MapThemesConfigWidget(QTableWidget):
 
         self.setColumnWidth(0, int(self.width() * 0.2))
         self.setColumnWidth(1, int(self.width() * 0.75))
-        self.sortByColumn(0, Qt.AscendingOrder)
+        self.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.setSortingEnabled(True)
 
-    def createConfiguration(self):
+    def create_configuration(self):
         configuration = {}
         for i in range(self.rowCount()):
             item = self.item(i, 0)
-            map_theme = item.data(Qt.EditRole)
+            map_theme = item.data(Qt.ItemDataRole.EditRole)
             cmb = self.cellWidget(i, 1)
             layer_id = cmb.currentLayer().id() if cmb.currentLayer() else ""
             configuration[map_theme] = layer_id

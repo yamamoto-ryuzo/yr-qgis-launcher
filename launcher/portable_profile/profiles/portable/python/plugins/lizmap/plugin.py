@@ -462,6 +462,8 @@ class Lizmap:
         ]
         self.lwc_versions[LwcVersions.Lizmap_3_10] = [
         ]
+        self.lwc_versions[LwcVersions.Lizmap_3_11] = [
+        ]
 
         self.lizmap_cloud = [
             self.dlg.label_lizmap_search_grant,
@@ -2475,6 +2477,8 @@ class Lizmap:
                     # deactivate wms checkbox if not needed
                     if key == 'externalWmsToggle':
                         wms_enabled = self.get_item_wms_capability(selected_item)
+                        LOGGER.debug(
+                            f"Selected layer '{selected_item}' return value for WMS capability is '{wms_enabled}'")
                         if wms_enabled is not None:
                             self.dlg.cbExternalWms.setEnabled(wms_enabled)
                             if wms_enabled:
@@ -2580,6 +2584,10 @@ class Lizmap:
         if isinstance(layer, QgsMapLayer):
             if is_layer_wms_excluded(self.project, layer.name()):
                 self.dlg.panel_layer_all_settings.setEnabled(False)
+
+            if isinstance(layer, QgsVectorLayer):
+                if not layer.isSpatial():
+                    self.layer_options_list['toggled']['widget'].setEnabled(False)
 
     # def enable_or_not_toggle_checkbox(self):
     #     """ Only for groups, to determine the state of the "toggled" option. """
@@ -2735,6 +2743,7 @@ class Lizmap:
 
         if attribution_url:
             raster.setAttributionUrl(attribution_url)
+            raster.setDataUrl(attribution_url)
         if attribution_name:
             raster.setAttribution(attribution_name)
         root_group = self.project.layerTreeRoot()
@@ -3529,7 +3538,10 @@ class Lizmap:
             )
             self.dlg.enabled_estimated_md_button(True)
 
-        if not project_trust_layer_metadata(self.project):
+        if not self.dlg.mOptionsListWidget.item(Panels.Training).isHidden():
+            # Make the life easier a little bit for short workshops.
+            project_trust_layer_metadata(self.project, True)
+        elif not project_trust_layer_metadata(self.project):
             self.dlg.check_results.add_error(Error(Path(self.project.fileName()).name, checks.TrustProject))
             self.dlg.enabled_trust_project(True)
 
@@ -4371,6 +4383,10 @@ class Lizmap:
     def save_cfg_file_cursor(self, close_dialog: bool):
         """ Save CFG file with a waiting cursor. """
         if not self.dlg.check_cfg_file_exists():
+            # Convenient option for users, for new CFG file only : project trust, and add geometry to GetFeatureInfo
+            project_trust_layer_metadata(self.project, True)
+            self.project.writeEntry('WMSAddWktGeometry', '', True)
+
             new_project = NewConfigDialog()
             new_project.exec()
 
@@ -5162,6 +5178,8 @@ class Lizmap:
         """ Check if the training panel should be visible or not. """
         current_url = self.dlg.current_server_info(ServerComboData.ServerUrl.value)
         # By default, set to a long training, with ZIP file
+        # We check now step by step if it's a short training
+        # with the login used with an existing QGS file on the server.
         self.dlg.workshop_type.setCurrentWidget(self.dlg.training_panel)
 
         if not current_url:
@@ -5171,7 +5189,10 @@ class Lizmap:
         if bool([domain for domain in WORKSHOP_DOMAINS if (domain in current_url)]):
             self.dlg.mOptionsListWidget.item(Panels.Training).setHidden(False)
 
-        LOGGER.info("Current server has been detected as a training server.")
+        LOGGER.info(
+            "Current server has been detected as a training server, set as long workshop by default for now. "
+            "Checking then if it can be a short workshop."
+        )
 
         metadata = self.dlg.current_server_info(ServerComboData.JsonMetadata.value)
         repositories = metadata.get('repositories')
@@ -5189,11 +5210,15 @@ class Lizmap:
 
         # Now set, to a short training with the prepared project
         # TODO remove or improve very soon
+        # Fixme, the settings must be used, and not the UI checkbox
         self.dlg.send_webdav.setChecked(True)
         self.dlg.checkbox_save_project.setChecked(True)
         self.dlg.radio_beginner.setChecked(True)
         self.dlg.workshop_type.setCurrentWidget(self.dlg.quick_workshop_panel)
-        LOGGER.info(f"Remote project '{user_project}', matching the user connected, has been detected on the server")
+        LOGGER.info(
+            f"Remote project '{user_project.get('title')}', matching the user connected, "
+            f"has been detected on the server. So set the workshop as short."
+        )
 
     def download_training_data_clicked(self, workshop_type: str = WorkshopType.ZipFile):
         """ Download the hard coded ZIP. """

@@ -1,3 +1,4 @@
+import base64
 import os
 import shutil
 import re
@@ -150,25 +151,42 @@ def getLabels(layer, folder, sln):
         if palyr and palyr.fieldName and palyr.fieldName != "":
             labelField = palyr.fieldName
             if labelField != "":
-                if str(layer.customProperty(
-                        "labeling/isExpression")).lower() == "true":
-                    exprFilename = os.path.join(folder, "resources",
-                                                "qgis2web_expressions.js")
-                    fieldName = layer.customProperty("labeling/fieldName")
-                    name = compile_to_file(fieldName, "label_%s" % sln,
-                                           "OpenLayers3", exprFilename)
-                    js = "%s(context)" % (name)
-                    js = js.strip()
-                    labelText = js
+                if palyr.isExpression:                   
+                    # Trova i campi usati nell'espressione
+                    field_names = re.findall(r'"([^"]+)"', labelField)
+                    hidden_found = False
+                    # sfoglia i campi per capire se sono editorWidget=Hidden
+                    for fname in field_names:
+                        fieldIndex = layer.fields().indexFromName(fname)
+                        if fieldIndex != -1:
+                            editorWidget = layer.editorWidgetSetup(fieldIndex).type()
+                            if editorWidget == 'Hidden':
+                                hidden_found = True
+                                break
+                    # se trova un campo editorWidget=Hidden crea label vuota
+                    if hidden_found:
+                        labelText = '""'
+                        print(layer.name(), " label is an expression")
+                        print('labelText is None because one field is editorWidget=Hidden')
+                    else:
+                        # trova il percorso del file e salva in fondo l'espressione
+                        # tradotta da SQL a JavaScript con la funzione compile_to_file di exp2js
+                        exprFilename = os.path.join(folder, "resources",
+                                                    "qgis2web_expressions.js")
+                        name = compile_to_file(labelField, "label_%s" % sln,
+                                            "OpenLayers3", exprFilename)
+                        js = "%s(context)" % (name)
+                        js = js.strip()
+                        labelText = js
                 else:
                     fieldIndex = layer.fields().indexFromName(
                         labelField)
                     # editFormConfig = layer.editFormConfig()
                     editorWidget = layer.editorWidgetSetup(fieldIndex).type()
                     if (editorWidget == 'Hidden'):
-                        labelField = "q2wHide_" + labelField
-                    labelText = ('feature.get("%s")' %
-                                 labelField.replace('"', '\\"'))
+                        labelText = '""'
+                    else:
+                        labelText = ('feature.get("%s")' % labelField.replace('"', '\\"'))                    
             else:
                 labelText = '""'
         else:
@@ -640,15 +658,24 @@ def getSymbolAsStyle(symbol, stylesFolder, layer_transparency, renderer, sln,
                 style = "image: %s" % style
         elif isinstance(sl, QgsSvgMarkerSymbolLayer):
             svg_path = sl.path()
-            base_filename = os.path.basename(svg_path)
-            filename, file_extension = os.path.splitext(base_filename)
+            # check if svg is embedded in project file or not
+            # as per QgsSymbolLayerUtils::svgSymbolNameToPath and
+            #        QgsSymbolLayerUtils::svgSymbolPathToName
+            if svg_path[0:7] == "base64:":
+                svg_xml = base64.standard_b64decode(svg_path[7:]).decode("utf-8")
+                svg = xml.etree.ElementTree.fromstring(svg_xml)
+                base_filename = "embedded.svg"
+                filename, file_extension = ("embedded", ".svg")
+            else:
+                svg = xml.etree.ElementTree.parse(svg_path).getroot()
+                base_filename = os.path.basename(svg_path)
+                filename, file_extension = os.path.splitext(base_filename)
             # Check if the file already exists, if yes, append a progressive number
             count = 0
             while os.path.exists(os.path.join(stylesFolder, base_filename)):
                 count += 1
                 base_filename = f"{filename}_{count}{file_extension}"
             path = os.path.join(stylesFolder, base_filename)
-            svg = xml.etree.ElementTree.parse(svg_path).getroot()
             try:
                 svgWidth = svg.attrib["width"]
                 svgWidth = re.sub("px", "", svgWidth)
@@ -677,13 +704,19 @@ def getSymbolAsStyle(symbol, stylesFolder, layer_transparency, renderer, sln,
             # replacing "param(...)" with actual values from QGIS
             pColor = getRGBAColor(props["color"], alpha).strip("'")
             pOutline = getRGBAColor(props["outline_color"], alpha).strip("'")
-            with open(svg_path) as f:
+            if svg_path[0:7] == "base64:":
+                s = svg_xml
+            else:
+                f = open(svg_path)
                 s = f.read()
-                s = s.replace('param(fill)', pColor)
-                s = s.replace('param(fill-opacity)', '1')
-                s = s.replace('param(outline)', pOutline)
-                s = s.replace('param(outline-width)', str(float(props["outline_width"]) * 80))
-                s = s.replace('param(outline-opacity)', '1')
+                f.close()
+
+            s = s.replace('param(fill)', pColor)
+            s = s.replace('param(fill-opacity)', '1')
+            s = s.replace('param(outline)', pOutline)
+            s = s.replace('param(outline-width)', str(float(props["outline_width"]) * 80))
+            s = s.replace('param(outline-opacity)', '1')
+
             with open(path, 'w') as f:
                 f.write(s)
         

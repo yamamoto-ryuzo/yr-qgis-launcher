@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  QFieldSync
@@ -26,7 +25,7 @@ from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QLabel, QSizePolicy, QTableWidget, QTableWidgetItem
 
-from ..utils.qt_utils import make_icon
+from qfieldsync.utils.qt_utils import make_icon
 
 
 class CheckerFeedbackTable(QTableWidget):
@@ -38,9 +37,11 @@ class CheckerFeedbackTable(QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.setRowCount(0)
         self.setMinimumHeight(100)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(
+            QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding
+        )
 
-        for layer_id in checker_feedback.feedbacks.keys():
+        for layer_id in checker_feedback.feedbacks:
             for feedback in checker_feedback.feedbacks[layer_id]:
                 row = self.rowCount()
 
@@ -55,7 +56,7 @@ class CheckerFeedbackTable(QTableWidget):
                     level_text = self.tr("Error")
 
                 item = QTableWidgetItem(level_icon, "")
-                item.setFlags(Qt.ItemIsEnabled)
+                item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                 item.setToolTip(level_text)
                 self.setItem(row, 0, item)
 
@@ -66,7 +67,7 @@ class CheckerFeedbackTable(QTableWidget):
                     source = self.tr("Project")
 
                 item = QTableWidgetItem()
-                item.setFlags(Qt.ItemIsEnabled)
+                item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                 item.setToolTip(level_text)
                 self.setItem(row, 1, item)
 
@@ -74,12 +75,12 @@ class CheckerFeedbackTable(QTableWidget):
                 label = QLabel("**{}**\n\n{}".format(source, feedback.message))
                 label.setWordWrap(True)
                 label.setMargin(5)
-                label.setTextFormat(Qt.MarkdownText)
+                label.setTextFormat(Qt.TextFormat.MarkdownText)
                 label.setTextInteractionFlags(
-                    Qt.TextSelectableByMouse
-                    | Qt.TextSelectableByKeyboard
-                    | Qt.LinksAccessibleByMouse
-                    | Qt.LinksAccessibleByKeyboard
+                    Qt.TextInteractionFlag.TextSelectableByMouse
+                    | Qt.TextInteractionFlag.TextSelectableByKeyboard
+                    | Qt.TextInteractionFlag.LinksAccessibleByMouse
+                    | Qt.TextInteractionFlag.LinksAccessibleByKeyboard
                 )
                 label.setOpenExternalLinks(True)
                 self.setCellWidget(row, 1, label)

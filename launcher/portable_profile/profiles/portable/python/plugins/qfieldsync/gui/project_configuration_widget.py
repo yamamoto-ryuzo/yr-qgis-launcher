@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
                               -------------------
@@ -17,9 +16,10 @@
  *                                                                         *
  ***************************************************************************/
 """
+import contextlib
 import os
 
-from libqfieldsync.layer import LayerSource, SyncAction
+from libqfieldsync.layer import LayerSource
 from libqfieldsync.project import ProjectConfiguration, ProjectProperties
 from qgis.core import (
     Qgis,
@@ -28,51 +28,99 @@ from qgis.core import (
     QgsPolygon,
     QgsProject,
 )
-from qgis.gui import QgsExtentWidget, QgsOptionsPageWidget, QgsSpinBox
-from qgis.PyQt.QtCore import QEvent, QLibraryInfo, QObject, Qt
-from qgis.PyQt.QtGui import QIcon, QKeySequence
-from qgis.PyQt.QtWidgets import QLabel, QListWidgetItem
+from qgis.gui import (
+    QgsExtentWidget,
+    QgsOptionsPageWidget,
+    QgsPanelWidget,
+    QgsPanelWidgetStack,
+    QgsSpinBox,
+)
+from qgis.PyQt.QtWidgets import QLineEdit, QVBoxLayout
 from qgis.PyQt.uic import loadUiType
 from qgis.utils import iface
 
 from qfieldsync.core.preferences import Preferences
+from qfieldsync.gui.directories_configuration_widget import (
+    DirectoriesConfigurationWidget,
+)
+from qfieldsync.gui.image_stamping_configuration_widget import (
+    ImageStampingConfigurationWidget,
+)
 from qfieldsync.gui.layers_config_widget import LayersConfigWidget
 from qfieldsync.gui.mapthemes_config_widget import MapThemesConfigWidget
 
 WidgetUi, _ = loadUiType(
-    os.path.join(os.path.dirname(__file__), "../ui/project_configuration_widget.ui"),
-    import_from="..",
+    os.path.join(os.path.dirname(__file__), "../ui/project_configuration_widget.ui")
 )
 
 
-class EventEater(QObject):
-    def eventFilter(self, widget, event):
-        if event.type() == QEvent.KeyPress:
-            if event.matches(QKeySequence.Backspace) or event.matches(
-                QKeySequence.Delete
-            ):
-                widget.takeItem(widget.currentRow())
+class ProjectConfigurationStackWidget(QgsOptionsPageWidget):
+    """Configuration widget for QFieldSync on a particular project."""
 
-        return super().eventFilter(widget, event)
+    def __init__(self, parent=None):
+        """Constructor."""
+        super().__init__(parent)
+
+        self.panel_stack = QgsPanelWidgetStack(self)
+        self.project_configuration_widget = ProjectConfigurationWidget(self)
+        self.panel_stack.setMainPanel(self.project_configuration_widget)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.panel_stack)
+        self.setLayout(self.layout)
+
+    def apply(self):
+        self.panel_stack.acceptAllPanels()
+        self.project_configuration_widget.apply()
 
 
-class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
-    """
-    Configuration widget for QFieldSync on a particular project.
-    """
+class ProjectConfigurationWidget(WidgetUi, QgsPanelWidget):
+    """Configuration widget for QFieldSync on a particular project."""
 
     def __init__(self, parent=None):
         """Constructor."""
         super().__init__(parent)
         self.setupUi(self)
 
+        self.setDockMode(True)
+
         self.project = QgsProject.instance()
         self.preferences = Preferences()
         self.__project_configuration = ProjectConfiguration(self.project)
+
+        self.stamping_font_style = self.__project_configuration.stamping_font_style
+        self.stamping_horizontal_alignment = (
+            self.__project_configuration.stamping_horizontal_alignment
+        )
+        self.stamping_image_decoration = (
+            self.__project_configuration.stamping_image_decoration
+        )
+        if self.__project_configuration.stamping_image_decoration:
+            self.stamping_image_decoration = (
+                QgsProject.instance()
+                .pathResolver()
+                .readPath(self.__project_configuration.stamping_image_decoration)
+            )
+        else:
+            self.stamping_image_decoration = ""
+        self.stamping_details_template = (
+            self.__project_configuration.stamping_details_template
+        )
+        self.force_stamping = self.__project_configuration.force_stamping
+        self.customizeImageStampingButton.clicked.connect(
+            self.show_image_stamping_settings
+        )
+
         self.areaOfInterestExtentWidget = QgsExtentWidget(self)
         self.areaOfInterestExtentWidget.setToolTip(
-            self.tr("Leave null to use the current project zoom extent.")
+            self.tr("Leave empty to use the full project extent")
         )
+        # A bit of a hack to deliver a nice instructive placeholder text to users
+        line_edits = self.areaOfInterestExtentWidget.findChildren(QLineEdit)
+        for line_edit in line_edits:
+            line_edit.setPlaceholderText(
+                self.tr("Leave empty to use the full project extent")
+            )
         self.areaOfInterestExtentWidget.setNullValueAllowed(True)
 
         if iface:
@@ -94,24 +142,18 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
                 self.areaOfInterestExtentWidget.outputCrs(),
             )
 
-        self.advancedSettingsGroupBox.layout().addWidget(
+        self.areaOfInterestBaseMapLayout.layout().addWidget(
             self.areaOfInterestExtentWidget, 1, 1
         )
 
-        self.preferOnlineLayersRadioButton.clicked.connect(
-            self.onLayerActionPreferenceChanged
-        )
-        self.preferOfflineLayersRadioButton.clicked.connect(
-            self.onLayerActionPreferenceChanged
-        )
-        self.singleLayerRadioButton.toggled.connect(self.baseMapTypeChanged)
+        self.singleLayerRadioButton.toggled.connect(self._on_base_map_type_changed)
 
-        self.forceAutoPush.clicked.connect(self.onForceAutoPushClicked)
+        self.forceAutoPush.clicked.connect(self._on_force_auto_push_clicked)
 
-        self.attachmentDirsListWidget.setMinimumHeight(140)
-        self.attachmentDirsListWidget.itemChanged.connect(self.onItemChanged)
-        self.event_eater = EventEater()
-        self.attachmentDirsListWidget.installEventFilter(self.event_eater)
+        self.directoriesConfigurationWidget = DirectoriesConfigurationWidget(self)
+        self.attachmentsDirectoriesTab.layout().addWidget(
+            self.directoriesConfigurationWidget, 1, 0, 1, 2
+        )
 
         self.geofencingBehaviorComboBox.addItem(
             self.tr("Alert users when inside an area"),
@@ -126,21 +168,11 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
             ProjectProperties.GeofencingBehavior.INFORM_ENTER_LEAVE_AREAS,
         )
 
-        self.reloadProject()
+        self._reload_project()
 
-    def reloadProject(self):
-        """
-        Load all layers from the map layer registry into the table.
-        """
-        self.unsupportedLayersList = list()
-
-        infoLabel = QLabel()
-        infoLabel.setPixmap(QIcon.fromTheme("info").pixmap(16, 16))
-        infoLabel.setToolTip(
-            self.tr(
-                "To improve the overall user experience with QFieldCloud, it is recommended that all vector layers use UUID as primary key."
-            )
-        )
+    def _reload_project(self):  # noqa: PLR0915
+        """Load all layers from the map layer registry into the table."""
+        self.unsupportedLayersList = []
 
         layer_sources = [
             LayerSource(layer) for layer in QgsProject.instance().mapLayers().values()
@@ -151,8 +183,8 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
         self.cableLayersConfigWidget = LayersConfigWidget(
             self.project, False, layer_sources
         )
-        self.cloudAdvancedSettings.layout().addWidget(self.cloudLayersConfigWidget)
-        self.cloudExportTab.layout().addWidget(infoLabel, 0, 2)
+
+        self.cloudExportTab.layout().addWidget(self.cloudLayersConfigWidget, 2, 0, 1, 2)
         self.cableExportTab.layout().addWidget(self.cableLayersConfigWidget)
 
         # Map Themes configuration widgets
@@ -167,7 +199,7 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
         self.digitizingLogsLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.digitizingLogsLayerComboBox.setAllowEmptyLayer(True)
 
-        if Qgis.QGIS_VERSION_INT >= 32400:
+        if Qgis.versionInt() >= 32400:  # noqa: PLR2004
             self.layerComboBox.setProject(self.project)
             self.geofencingLayerComboBox.setProject(self.project)
             self.digitizingLogsLayerComboBox.setProject(self.project)
@@ -192,6 +224,13 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
         else:
             self.mapThemeRadioButton.setChecked(True)
 
+        self.baseMapLayerLabel.setVisible(self.singleLayerRadioButton.isChecked())
+        self.layerComboBox.setVisible(self.singleLayerRadioButton.isChecked())
+        self.baseMapMapThemeLabel.setVisible(
+            not self.singleLayerRadioButton.isChecked()
+        )
+        self.mapThemeComboBox.setVisible(not self.singleLayerRadioButton.isChecked())
+
         self.mapThemeComboBox.setCurrentIndex(
             self.mapThemeComboBox.findText(self.__project_configuration.base_map_theme)
         )
@@ -206,10 +245,10 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
             self.__project_configuration.geofencing_is_active
         )
 
-        geofencingLayer = QgsProject.instance().mapLayer(
+        geofencing_layer = QgsProject.instance().mapLayer(
             self.__project_configuration.geofencing_layer
         )
-        self.geofencingLayerComboBox.setLayer(geofencingLayer)
+        self.geofencingLayerComboBox.setLayer(geofencing_layer)
 
         self.geofencingBehaviorComboBox.setCurrentIndex(
             self.geofencingBehaviorComboBox.findData(
@@ -222,10 +261,10 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
         )
 
         # Advanced settings
-        digitizingLogsLayer = QgsProject.instance().mapLayer(
+        digitizing_logs_layer = QgsProject.instance().mapLayer(
             self.__project_configuration.digitizing_logs_layer
         )
-        self.digitizingLogsLayerComboBox.setLayer(digitizingLogsLayer)
+        self.digitizingLogsLayerComboBox.setLayer(digitizing_logs_layer)
 
         self.maximumImageWidthHeight.setClearValueMode(
             QgsSpinBox.CustomValue, self.tr("No restriction")
@@ -234,8 +273,11 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
             self.__project_configuration.maximum_image_width_height
         )
 
-        self.mapUnitsPerPixel.setValue(self.__project_configuration.base_map_mupp)
-        self.tileSize.setValue(self.__project_configuration.base_map_tile_size)
+        tiles_size_index = self.baseMapTileSizeComboBox.findText(
+            str(self.__project_configuration.base_map_tile_size)
+        )
+        if tiles_size_index >= 0:
+            self.baseMapTileSizeComboBox.setCurrentIndex(tiles_size_index)
 
         self.baseMapTilesMinZoomLevelSpinBox.setValue(
             self.__project_configuration.base_map_tiles_min_zoom_level
@@ -247,12 +289,6 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
         self.onlyOfflineCopyFeaturesInAoi.setChecked(
             self.__project_configuration.offline_copy_only_aoi
         )
-        self.preferOnlineLayersRadioButton.setChecked(
-            self.__project_configuration.layer_action_preference == "online"
-        )
-        self.preferOfflineLayersRadioButton.setChecked(
-            self.__project_configuration.layer_action_preference == "offline"
-        )
 
         self.forceAutoPush.setChecked(self.__project_configuration.force_auto_push)
         self.forceAutoPushInterval.setEnabled(
@@ -262,14 +298,12 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
             self.__project_configuration.force_auto_push_interval_mins
         )
 
-        attachment_dirs = [*self.preferences.value("attachmentDirs")]
-        attachment_dirs.append("")
-
-        for attachment_dir in attachment_dirs:
-            item = QListWidgetItem()
-            item.setText(attachment_dir)
-            item.setFlags(item.flags() | Qt.ItemIsEditable)
-            self.attachmentDirsListWidget.addItem(item)
+        self.directoriesConfigurationWidget.reload(
+            {
+                "attachment_dirs": [*self.preferences.value("attachmentDirs")],
+                "data_dirs": [*self.preferences.value("dataDirs")],
+            }
+        )
 
         if self.unsupportedLayersList:
             self.unsupportedLayersLabel.setVisible(True)
@@ -284,9 +318,7 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
             self.unsupportedLayersLabel.setText(unsupported_layers_text)
 
     def apply(self):
-        """
-        Update layer configuration in project
-        """
+        """Update layer configuration in project"""
         self.cloudLayersConfigWidget.apply()
         self.cableLayersConfigWidget.apply()
 
@@ -310,26 +342,22 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
 
         # try/pass layer ID fetching because the save button is global for all
         # project settings, not only QField
-        try:
+        with contextlib.suppress(AttributeError):
             self.__project_configuration.base_map_layer = (
                 self.layerComboBox.currentLayer().id()
             )
-        except AttributeError:
-            pass
 
         # Geofencing settings
         self.__project_configuration.geofencing_is_active = (
             self.geofencingGroupBox.isChecked()
         )
 
-        try:
+        with contextlib.suppress(AttributeError):
             self.__project_configuration.geofencing_layer = (
                 self.geofencingLayerComboBox.currentLayer().id()
                 if self.geofencingLayerComboBox.currentLayer()
                 else ""
             )
-        except AttributeError:
-            pass
 
         self.__project_configuration.geofencing_behavior = (
             self.geofencingBehaviorComboBox.currentData()
@@ -340,19 +368,16 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
         )
 
         # Advanced settings
-        try:
+        with contextlib.suppress(AttributeError):
             self.__project_configuration.digitizing_logs_layer = (
                 self.digitizingLogsLayerComboBox.currentLayer().id()
                 if self.digitizingLogsLayerComboBox.currentLayer()
                 else ""
             )
-        except AttributeError:
-            pass
 
-        self.__project_configuration.base_map_mupp = float(
-            self.mapUnitsPerPixel.value()
+        self.__project_configuration.base_map_tile_size = int(
+            self.baseMapTileSizeComboBox.currentText()
         )
-        self.__project_configuration.base_map_tile_size = self.tileSize.value()
 
         self.__project_configuration.base_map_tiles_min_zoom_level = (
             self.baseMapTilesMinZoomLevelSpinBox.value()
@@ -379,89 +404,67 @@ class ProjectConfigurationWidget(WidgetUi, QgsOptionsPageWidget):
             self.__project_configuration.area_of_interest = ""
             self.__project_configuration.area_of_interest_crs = ""
 
-        self.__project_configuration.layer_action_preference = (
-            "online" if self.preferOnlineLayersRadioButton.isChecked() else "offline"
-        )
-
         self.__project_configuration.force_auto_push = self.forceAutoPush.isChecked()
         self.__project_configuration.force_auto_push_interval_mins = (
             self.forceAutoPushInterval.value()
         )
 
-        v = QLibraryInfo.version()
-        match_flag = (
-            Qt.MatchRegularExpression
-            if v.majorVersion() > 5 and v.minorVersion() >= 15
-            else Qt.MatchRegExp
-        )
-        keys = {}
-        for item in self.attachmentDirsListWidget.findItems("^\\S+$", match_flag):
-            keys[item.text()] = 1
-        self.preferences.set_value("attachmentDirs", list(keys.keys()))
+        configuration = self.directoriesConfigurationWidget.create_configuration()
+        self.preferences.set_value("attachmentDirs", configuration["attachment_dirs"])
+        self.preferences.set_value("dataDirs", configuration["data_dirs"])
 
         self.__project_configuration.map_themes_active_layer = (
-            self.mapThemesConfigWidget.createConfiguration()
+            self.mapThemesConfigWidget.create_configuration()
         )
 
-    def onForceAutoPushClicked(self, checked):
+        self.__project_configuration.stamping_font_style = self.stamping_font_style
+        self.__project_configuration.stamping_horizontal_alignment = (
+            self.stamping_horizontal_alignment
+        )
+        if self.stamping_image_decoration:
+            self.__project_configuration.stamping_image_decoration = (
+                QgsProject.instance()
+                .pathResolver()
+                .writePath(self.stamping_image_decoration)
+            )
+        else:
+            self.__project_configuration.stamping_image_decoration = ""
+        self.__project_configuration.stamping_details_template = (
+            self.stamping_details_template
+        )
+        self.__project_configuration.force_stamping = self.force_stamping
+
+    def show_image_stamping_settings(self):
+        self.image_stamping_panel = ImageStampingConfigurationWidget(self)
+        self.image_stamping_panel.set_font_style(self.stamping_font_style)
+        self.image_stamping_panel.set_horizontal_alignment(
+            self.stamping_horizontal_alignment
+        )
+        self.image_stamping_panel.set_image_decoration(self.stamping_image_decoration)
+        self.image_stamping_panel.set_details_template(self.stamping_details_template)
+        self.image_stamping_panel.set_force_stamping(self.force_stamping)
+        self.image_stamping_panel.panelAccepted.connect(
+            self.apply_image_stamping_settings
+        )
+        self.openPanel(self.image_stamping_panel)
+
+    def apply_image_stamping_settings(self, _panel):
+        self.stamping_font_style = self.image_stamping_panel.font_style()
+        self.stamping_horizontal_alignment = (
+            self.image_stamping_panel.horizontal_alignment()
+        )
+        self.stamping_image_decoration = self.image_stamping_panel.image_decoration()
+        self.stamping_details_template = self.image_stamping_panel.details_template()
+        self.force_stamping = self.image_stamping_panel.force_stamping()
+        self.image_stamping_panel = None
+
+    def _on_force_auto_push_clicked(self, checked):
         self.forceAutoPushInterval.setEnabled(checked)
 
-    def onLayerActionPreferenceChanged(self):
-        """Triggered when prefer online or offline radio buttons have been changed"""
-        prefer_online = self.preferOnlineLayersRadioButton.isChecked()
-
-        for i in range(self.cloudLayersConfigWidget.layersTable.rowCount()):
-            item = self.cloudLayersConfigWidget.layersTable.item(i, 0)
-            layer_source = item.data(Qt.UserRole)
-            cmb = self.cloudLayersConfigWidget.layersTable.cellWidget(i, 1)
-
-            # it would be annoying to change the action on removed layers
-            if cmb.itemData(cmb.currentIndex()) == SyncAction.REMOVE:
-                continue
-
-            idx, _cloud_action = layer_source.preferred_cloud_action(prefer_online)
-            cmb.setCurrentIndex(idx)
-            layer_source.cloud_action = cmb.itemData(cmb.currentIndex())
-
-    def onItemChanged(self, item):
-        current_idx = self.attachmentDirsListWidget.indexFromItem(item)
-        text = item.text()
-
-        v = QLibraryInfo.version()
-        match_flag = (
-            Qt.MatchRegularExpression
-            if v.majorVersion() > 5 and v.minorVersion() >= 15
-            else Qt.MatchRegExp
+    def _on_base_map_type_changed(self):
+        self.baseMapLayerLabel.setVisible(self.singleLayerRadioButton.isChecked())
+        self.layerComboBox.setVisible(self.singleLayerRadioButton.isChecked())
+        self.baseMapMapThemeLabel.setVisible(
+            not self.singleLayerRadioButton.isChecked()
         )
-        empty_items = self.attachmentDirsListWidget.findItems("^\\s*$", match_flag)
-
-        # remove all empty items
-        for empty_item in empty_items:
-            idx = self.attachmentDirsListWidget.indexFromItem(empty_item)
-            self.attachmentDirsListWidget.takeItem(idx.row())
-
-        # add new empty item in the end
-        item = QListWidgetItem()
-        item.setFlags(item.flags() | Qt.ItemIsEditable)
-        self.attachmentDirsListWidget.addItem(item)
-
-        idx_correction = 0 if text.strip() == "" else 1
-
-        # set current item to the next element in the list and trigger editing
-        self.attachmentDirsListWidget.setCurrentRow(
-            min(
-                self.attachmentDirsListWidget.count(),
-                current_idx.row() + idx_correction,
-            )
-        )
-
-        if text != "":
-            self.attachmentDirsListWidget.editItem(
-                self.attachmentDirsListWidget.currentItem()
-            )
-
-    def baseMapTypeChanged(self):
-        if self.singleLayerRadioButton.isChecked():
-            self.baseMapTypeStack.setCurrentWidget(self.singleLayerPage)
-        else:
-            self.baseMapTypeStack.setCurrentWidget(self.mapThemePage)
+        self.mapThemeComboBox.setVisible(not self.singleLayerRadioButton.isChecked())

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
                               -------------------
@@ -21,34 +20,32 @@
 from qgis.gui import QgsGui
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
 
-from qfieldsync.gui.project_configuration_widget import ProjectConfigurationWidget
+from qfieldsync.gui.project_configuration_widget import ProjectConfigurationStackWidget
 
 
 class ProjectConfigurationDialog(QDialog):
-    """
-    Configuration dialog for QFieldSync on a particular project.
-    """
+    """Configuration dialog for QFieldSync on a particular project."""
 
     def __init__(self, parent=None):
         """Constructor."""
-        super(ProjectConfigurationDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.setMinimumWidth(500)
         QgsGui.instance().enableAutoGeometryRestore(self)
 
         self.setWindowTitle("QFieldSync Project Properties")
 
-        self.projectConfigurationWidget = ProjectConfigurationWidget(self)
+        self.projectConfigurationStackWidget = ProjectConfigurationStackWidget(self)
 
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.buttonBox.accepted.connect(lambda: self.onAccepted())
+        self.buttonBox.accepted.connect(lambda: self._on_accepted())
         self.buttonBox.rejected.connect(self.reject)
 
         self.layout = QVBoxLayout()
-        self.layout.addWidget(self.projectConfigurationWidget)
+        self.layout.addWidget(self.projectConfigurationStackWidget)
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
 
-    def onAccepted(self):
+    def _on_accepted(self):
         self.projectConfigurationWidget.apply()
         self.close()

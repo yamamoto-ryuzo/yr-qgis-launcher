@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  AttachmentNamingTableWidget
@@ -29,7 +28,7 @@ from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem
 
 class AttachmentNamingTableWidget(QTableWidget):
     def __init__(self):
-        super(AttachmentNamingTableWidget, self).__init__()
+        super().__init__()
 
         self.setColumnCount(3)
         self.setHorizontalHeaderLabels(
@@ -43,22 +42,22 @@ class AttachmentNamingTableWidget(QTableWidget):
         self.resizeColumnsToContents()
         self.setMinimumHeight(100)
 
-    def addLayerFields(self, layer_source):
+    def add_layer_fields(self, layer_source):
         layer = layer_source.layer
 
         if layer.type() != QgsMapLayer.VectorLayer:
             return
 
-        for field_name in layer_source.get_attachment_fields().keys():
+        for field_name in layer_source.get_attachment_fields():
             row = self.rowCount()
 
             self.insertRow(row)
             item = QTableWidgetItem(layer.name())
-            item.setData(Qt.UserRole, layer_source)
-            item.setFlags(Qt.ItemIsEnabled)
+            item.setData(Qt.ItemDataRole.UserRole, layer_source)
+            item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, 0, item)
             item = QTableWidgetItem(field_name)
-            item.setFlags(Qt.ItemIsEnabled)
+            item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, 1, item)
             ew = QgsFieldExpressionWidget()
             ew.setLayer(layer)
@@ -67,12 +66,12 @@ class AttachmentNamingTableWidget(QTableWidget):
 
         self.resizeColumnsToContents()
 
-    def setLayerColumnHidden(self, is_hidden):
+    def set_layer_column_hidden(self, is_hidden):
         self.setColumnHidden(0, is_hidden)
 
-    def syncLayerSourceValues(self, should_apply=False):
+    def sync_layer_source_values(self, should_apply=False):
         for i in range(self.rowCount()):
-            layer_source = self.item(i, 0).data(Qt.UserRole)
+            layer_source = self.item(i, 0).data(Qt.ItemDataRole.UserRole)
             field_name = self.item(i, 1).text()
             new_expression = self.cellWidget(i, 2).currentText()
             layer_source.set_attachment_naming(field_name, new_expression)

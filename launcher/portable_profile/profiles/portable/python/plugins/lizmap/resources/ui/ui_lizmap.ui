@@ -1517,11 +1517,22 @@ This is different to the map maximum extent (defined in QGIS project properties,
                    </widget>
                   </item>
                   <item row="2" column="0">
-                   <widget class="QCheckBox" name="activate_first_map_theme">
-                    <property name="text">
-                     <string>Activate first map theme on startup</string>
-                    </property>
-                   </widget>
+                   <layout class="QHBoxLayout" name="horizontalLayout_36">
+                    <item>
+                     <widget class="QCheckBox" name="activate_first_map_theme">
+                      <property name="text">
+                       <string>Activate first map theme on startup</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="help_map_theme">
+                      <property name="text">
+                       <string notr="true">HELP</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </widget>
@@ -1968,11 +1979,41 @@ This is different to the map maximum extent (defined in QGIS project properties,
                                  </widget>
                                 </item>
                                 <item>
-                                 <widget class="QRadioButton" name="children_lizmap_features_table">
-                                  <property name="text">
-                                   <string>Display table of children (recommended)</string>
-                                  </property>
-                                 </widget>
+                                 <layout class="QHBoxLayout" name="horizontalLayout_42">
+                                  <item>
+                                   <widget class="QRadioButton" name="children_lizmap_features_table">
+                                    <property name="text">
+                                     <string>Display table of children (recommended)</string>
+                                    </property>
+                                   </widget>
+                                  </item>
+                                  <item>
+                                   <widget class="QPushButton" name="help_lizmap_features_table">
+                                    <property name="sizePolicy">
+                                     <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                                      <horstretch>0</horstretch>
+                                      <verstretch>0</verstretch>
+                                     </sizepolicy>
+                                    </property>
+                                    <property name="text">
+                                     <string notr="true">?</string>
+                                    </property>
+                                   </widget>
+                                  </item>
+                                  <item>
+                                   <spacer name="horizontalSpacer_8">
+                                    <property name="orientation">
+                                     <enum>Qt::Horizontal</enum>
+                                    </property>
+                                    <property name="sizeHint" stdset="0">
+                                     <size>
+                                      <width>40</width>
+                                      <height>20</height>
+                                     </size>
+                                    </property>
+                                   </spacer>
+                                  </item>
+                                 </layout>
                                 </item>
                                 <item>
                                  <widget class="QRadioButton" name="popup_display_children">
@@ -2057,7 +2098,7 @@ This is different to the map maximum extent (defined in QGIS project properties,
                          <item>
                           <layout class="QHBoxLayout" name="horizontalLayout_25">
                            <item>
-                            <widget class="QLabel" name="label_56">
+                            <widget class="QLabel" name="label_external_wms_check">
                              <property name="font">
                               <font>
                                <weight>50</weight>
@@ -5667,6 +5708,7 @@ This is different to the map maximum extent (defined in QGIS project properties,
   <tabstop>inSourceProject</tabstop>
   <tabstop>cbHideGroupCheckbox</tabstop>
   <tabstop>activate_first_map_theme</tabstop>
+  <tabstop>help_map_theme</tabstop>
   <tabstop>scrollArea_3</tabstop>
   <tabstop>add_group_hidden</tabstop>
   <tabstop>add_group_baselayers</tabstop>
@@ -5811,6 +5853,7 @@ This is different to the map maximum extent (defined in QGIS project properties,
   <tabstop>remove_attribute_table_button</tabstop>
   <tabstop>children_no_display</tabstop>
   <tabstop>children_lizmap_features_table</tabstop>
+  <tabstop>help_lizmap_features_table</tabstop>
   <tabstop>popup_display_children</tabstop>
   <tabstop>edit_attribute_table_button</tabstop>
   <tabstop>cbLimitDataToBbox</tabstop>

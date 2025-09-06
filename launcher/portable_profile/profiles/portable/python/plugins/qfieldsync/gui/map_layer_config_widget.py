@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  QFieldSyncDialog
@@ -25,7 +24,6 @@ import os
 from libqfieldsync.layer import LayerSource
 from qgis.core import QgsMapLayer, QgsProject, QgsProperty, QgsPropertyDefinition
 from qgis.gui import QgsMapLayerConfigWidget, QgsMapLayerConfigWidgetFactory, QgsSpinBox
-from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.uic import loadUiType
 
 from qfieldsync.core.message_bus import message_bus
@@ -42,23 +40,26 @@ WidgetUi, _ = loadUiType(
 
 class MapLayerConfigWidgetFactory(QgsMapLayerConfigWidgetFactory):
     def __init__(self, title, icon):
-        super(MapLayerConfigWidgetFactory, self).__init__(title, icon)
+        super().__init__(title, icon)
 
-    def createWidget(self, layer, canvas, dock_widget, parent):
+    def createWidget(self, layer, canvas, _dock_widget, parent):  # noqa: N802
         return MapLayerConfigWidget(layer, canvas, parent)
 
-    def supportsLayer(self, layer):
+    def supportsLayer(self, layer):  # noqa: N802
         return LayerSource(layer).is_supported
 
-    def supportLayerPropertiesDialog(self):
+    def supportLayerPropertiesDialog(self):  # noqa: N802
         return True
 
 
 class MapLayerConfigWidget(QgsMapLayerConfigWidget, WidgetUi):
-    PROPERTY_GEOMETRY_LOCKED = 1
+    PROPERTY_FEATURE_ADDITION_LOCKED = 1
+    PROPERTY_GEOMETRY_EDITING_LOCKED = 2
+    PROPERTY_ATTRIBUTE_EDITING_LOCKED = 3
+    PROPERTY_FEATURE_DELETION_LOCKED = 4
 
-    def __init__(self, layer, canvas, parent):
-        super(MapLayerConfigWidget, self).__init__(layer, canvas, parent)
+    def __init__(self, layer, canvas, parent):  # noqa: PLR0915
+        super().__init__(layer, canvas, parent)
         self.setupUi(self)
         self.layer_source = LayerSource(layer)
         self.project = QgsProject.instance()
@@ -75,12 +76,12 @@ class MapLayerConfigWidget(QgsMapLayerConfigWidget, WidgetUi):
         )
 
         self.attachmentNamingTable = AttachmentNamingTableWidget()
-        self.attachmentNamingTable.addLayerFields(self.layer_source)
-        self.attachmentNamingTable.setLayerColumnHidden(True)
+        self.attachmentNamingTable.add_layer_fields(self.layer_source)
+        self.attachmentNamingTable.set_layer_column_hidden(True)
 
         self.relationshipConfigurationTable = RelationshipConfigurationTableWidget()
-        self.relationshipConfigurationTable.addLayerFields(self.layer_source)
-        self.relationshipConfigurationTable.setLayerColumnHidden(True)
+        self.relationshipConfigurationTable.add_layer_fields(self.layer_source)
+        self.relationshipConfigurationTable.set_layer_column_hidden(True)
 
         self.valueMapButtonInterfaceSpinBox.setClearValueMode(
             QgsSpinBox.CustomValue, self.tr("Disabled")
@@ -102,29 +103,99 @@ class MapLayerConfigWidget(QgsMapLayerConfigWidget, WidgetUi):
 
         if layer.type() == QgsMapLayer.VectorLayer:
             prop = QgsProperty.fromExpression(
-                self.layer_source.geometry_locked_expression
+                self.layer_source.feature_addition_locked_expression
             )
-            prop.setActive(self.layer_source.is_geometry_locked_expression_active)
+            prop.setActive(
+                self.layer_source.is_feature_addition_locked_expression_active
+            )
             prop_definition = QgsPropertyDefinition(
-                "is_geometry_locked",
+                "is_feature_addition_locked",
                 QgsPropertyDefinition.DataType.DataTypeBoolean,
-                "Geometry Locked",
+                "Feature Addition Locked",
                 "",
             )
-            self.isGeometryLockedDDButton.init(
-                MapLayerConfigWidget.PROPERTY_GEOMETRY_LOCKED,
+            self.isFeatureAdditionLockedDDButton.init(
+                MapLayerConfigWidget.PROPERTY_FEATURE_ADDITION_LOCKED,
                 prop,
                 prop_definition,
                 None,
                 False,
             )
-            self.isGeometryLockedDDButton.setVectorLayer(layer)
-
-            self.isGeometryLockedCheckBox.setEnabled(
-                self.layer_source.can_lock_geometry
+            self.isFeatureAdditionLockedDDButton.setVectorLayer(layer)
+            self.isFeatureAdditionLockedCheckBox.setChecked(
+                self.layer_source.is_feature_addition_locked
             )
-            self.isGeometryLockedCheckBox.setChecked(
-                self.layer_source.is_geometry_locked
+
+            prop = QgsProperty.fromExpression(
+                self.layer_source.attribute_editing_locked_expression
+            )
+            prop.setActive(
+                self.layer_source.is_attribute_editing_locked_expression_active
+            )
+            prop_definition = QgsPropertyDefinition(
+                "is_attribute_editing_locked",
+                QgsPropertyDefinition.DataType.DataTypeBoolean,
+                "Attribute Editing Locked",
+                "",
+            )
+            self.isAttributeEditingLockedDDButton.init(
+                MapLayerConfigWidget.PROPERTY_ATTRIBUTE_EDITING_LOCKED,
+                prop,
+                prop_definition,
+                None,
+                False,
+            )
+            self.isAttributeEditingLockedDDButton.setVectorLayer(layer)
+            self.isAttributeEditingLockedCheckBox.setChecked(
+                self.layer_source.is_attribute_editing_locked
+            )
+
+            prop = QgsProperty.fromExpression(
+                self.layer_source.geometry_editing_locked_expression
+            )
+            prop.setActive(
+                self.layer_source.is_geometry_editing_locked_expression_active
+            )
+            prop_definition = QgsPropertyDefinition(
+                "is_geometry_editing_locked",
+                QgsPropertyDefinition.DataType.DataTypeBoolean,
+                "Geometry Editing Locked",
+                "",
+            )
+            self.isGeometryEditingLockedDDButton.init(
+                MapLayerConfigWidget.PROPERTY_GEOMETRY_EDITING_LOCKED,
+                prop,
+                prop_definition,
+                None,
+                False,
+            )
+            self.isGeometryEditingLockedDDButton.setVectorLayer(layer)
+            self.isGeometryEditingLockedCheckBox.setChecked(
+                self.layer_source.is_geometry_editing_locked
+            )
+
+            prop = QgsProperty.fromExpression(
+                self.layer_source.feature_deletion_locked_expression
+            )
+            prop.setActive(
+                self.layer_source.is_feature_deletion_locked_expression_active
+            )
+            prop_definition = QgsPropertyDefinition(
+                "is_feature_deletion_locked",
+                QgsPropertyDefinition.DataType.DataTypeBoolean,
+                "Feature Deletion Locked",
+                "",
+            )
+            self.isFeatureDeletionLockedDDButton.init(
+                MapLayerConfigWidget.PROPERTY_FEATURE_DELETION_LOCKED,
+                prop,
+                prop_definition,
+                None,
+                False,
+            )
+            self.isFeatureDeletionLockedDDButton.setVectorLayer(layer)
+            self.isFeatureDeletionLockedCheckBox.setChecked(
+                self.layer_source.is_feature_deletion_locked
             )
 
             self.valueMapButtonInterfaceSpinBox.setValue(
@@ -133,32 +204,35 @@ class MapLayerConfigWidget(QgsMapLayerConfigWidget, WidgetUi):
             self.valueMapButtonInterfaceSpinBox.setVisible(True)
 
             # append the attachment naming table to the layout
-            self.attachmentsRelationsLayout.insertRow(
-                -1, self.tr("Attachment\nnaming"), self.attachmentNamingTable
+            self.attachmentsGroupBox.layout().addWidget(
+                self.attachmentNamingTable, 1, 0
             )
-            tip = QLabel(
-                self.tr(
-                    "In your expressions, use {filename} and {extension} tags to refer to attachment filenames and extensions."
-                )
-            )
-            tip.setWordWrap(True)
-            self.attachmentsRelationsLayout.insertRow(-1, "", tip)
             self.attachmentNamingTable.setEnabled(
                 self.attachmentNamingTable.rowCount() > 0
             )
+            self.attachmentsGroupBox.setCollapsed(
+                self.attachmentNamingTable.rowCount() == 0
+            )
 
             # append the relationship configuration table to the layout
-            self.attachmentsRelationsLayout.insertRow(
-                -1,
-                self.tr("Relationship\nconfiguration"),
-                self.relationshipConfigurationTable,
+            self.relationsGroupBox.layout().addWidget(
+                self.relationshipConfigurationTable, 1, 0
             )
             self.relationshipConfigurationTable.setEnabled(
                 self.relationshipConfigurationTable.rowCount() > 0
             )
+            self.relationsGroupBox.setCollapsed(
+                self.relationshipConfigurationTable.rowCount() == 0
+            )
 
+            self.allowValueRelationFeatureAddition.setChecked(
+                self.layer_source.allow_value_relation_feature_addition
+            )
             self.trackingSessionGroupBox.setChecked(
                 self.layer_source.tracking_session_active
+            )
+            self.trackingSessionGroupBox.setCollapsed(
+                not self.layer_source.tracking_session_active
             )
             self.timeRequirementCheckBox.setChecked(
                 self.layer_source.tracking_time_requirement_active
@@ -188,36 +262,65 @@ class MapLayerConfigWidget(QgsMapLayerConfigWidget, WidgetUi):
                 self.layer_source.tracking_measurement_type
             )
         else:
-            self.isGeometryLockedDDButton.setVisible(False)
-            self.isGeometryLockedCheckBox.setVisible(False)
+            self.lockLabel.setVisible(False)
+            self.isFeatureAdditionLockedDDButton.setVisible(False)
+            self.isFeatureAdditionLockedCheckBox.setVisible(False)
+            self.isAttributeEditingLockedDDButton.setVisible(False)
+            self.isAttributeEditingLockedCheckBox.setVisible(False)
+            self.isGeometryEditingLockedDDButton.setVisible(False)
+            self.isGeometryEditingLockedCheckBox.setVisible(False)
+            self.isFeatureDeletionLockedDDButton.setVisible(False)
+            self.isFeatureDeletionLockedCheckBox.setVisible(False)
 
-            self.valueMapButtonInterfaceSpinBox.setVisible(False)
-            self.attachmentsRelationsGroupBox.setVisible(False)
+            self.featureFormGroupBox.setVisible(False)
+            self.attachmentsGroupBox.setVisible(False)
+            self.relationsGroupBox.setVisible(False)
             self.trackingSessionGroupBox.setVisible(False)
 
     def apply(self):
-        self.layer_source.action
-        self.layer_source.cloud_action
-        self.layer_source.is_geometry_locked
-
         self.layer_source.cloud_action = self.cloudLayerActionComboBox.itemData(
             self.cloudLayerActionComboBox.currentIndex()
         )
         self.layer_source.action = self.cableLayerActionComboBox.itemData(
             self.cableLayerActionComboBox.currentIndex()
         )
-        self.layer_source.is_geometry_locked = self.isGeometryLockedCheckBox.isChecked()
-        prop = self.isGeometryLockedDDButton.toProperty()
-        self.layer_source.is_geometry_locked_expression_active = prop.isActive()
-        self.layer_source.geometry_locked_expression = prop.asExpression()
-        print(self.valueMapButtonInterfaceSpinBox.value())
-        print(self.valueMapButtonInterfaceSpinBox.value())
+
+        self.layer_source.is_feature_addition_locked = (
+            self.isFeatureAdditionLockedCheckBox.isChecked()
+        )
+        prop = self.isFeatureAdditionLockedDDButton.toProperty()
+        self.layer_source.is_feature_addition_locked_expression_active = prop.isActive()
+        self.layer_source.feature_addition_locked_expression = prop.asExpression()
+        self.layer_source.is_attribute_editing_locked = (
+            self.isAttributeEditingLockedCheckBox.isChecked()
+        )
+        prop = self.isAttributeEditingLockedDDButton.toProperty()
+        self.layer_source.is_attribute_editing_locked_expression_active = (
+            prop.isActive()
+        )
+        self.layer_source.attribute_editing_locked_expression = prop.asExpression()
+        self.layer_source.is_geometry_editing_locked = (
+            self.isGeometryEditingLockedCheckBox.isChecked()
+        )
+        prop = self.isGeometryEditingLockedDDButton.toProperty()
+        self.layer_source.is_geometry_editing_locked_expression_active = prop.isActive()
+        self.layer_source.geometry_editing_locked_expression = prop.asExpression()
+        self.layer_source.is_feature_deletion_locked = (
+            self.isFeatureDeletionLockedCheckBox.isChecked()
+        )
+        prop = self.isFeatureDeletionLockedDDButton.toProperty()
+        self.layer_source.is_feature_deletion_locked_expression_active = prop.isActive()
+        self.layer_source.feature_deletion_locked_expression = prop.asExpression()
+
         self.layer_source.value_map_button_interface_threshold = (
             self.valueMapButtonInterfaceSpinBox.value()
         )
-        self.attachmentNamingTable.syncLayerSourceValues()
-        self.relationshipConfigurationTable.syncLayerSourceValues()
+        self.attachmentNamingTable.sync_layer_source_values()
+        self.relationshipConfigurationTable.sync_layer_source_values()
 
+        self.layer_source.allow_value_relation_feature_addition = (
+            self.allowValueRelationFeatureAddition.isChecked()
+        )
         self.layer_source.tracking_session_active = (
             self.trackingSessionGroupBox.isChecked()
         )

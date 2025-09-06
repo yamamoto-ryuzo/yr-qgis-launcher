@@ -23,14 +23,32 @@
 """
 import re
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QDockWidget
+# Import Qt compatibility module first
+from .qt_compat import QSettings, QTranslator, QCoreApplication, Qt, QIcon, QAction, QDockWidget, WA_DeleteOnClose, RightDockWidgetArea, translate, is_qt5, is_qt6, QT_VERSION, QtWidgets, QSize
 
 from qgis.core import QgsSettings, QgsMessageLog, QgsProject, QgsExpressionContextUtils
 
 # Initialize Qt resources from file resources.py
-from .resources_rc import *
+if is_qt5():
+    # Qt5 specific resource file with forced registration
+    try:
+        from . import resources_rc_qt5
+        # Force resource registration for Qt5 multiple times if needed
+        resources_rc_qt5.qInitResources()
+        # Double-check registration
+        if hasattr(resources_rc_qt5, 'qInitResources'):
+            resources_rc_qt5.qInitResources()
+    except ImportError:
+        try:
+            from .resources_rc import *
+        except:
+            pass
+else:
+    # Qt6 and fallback
+    from .resources_rc import *
+
+# Import version information
+from .version import __version__, get_version_info, get_compatibility_info
 
 # Import the code for the DockWidget
 from .legend_view_dockwidget import LegendViewDockWidget
@@ -53,25 +71,27 @@ class LegendView:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        # initialize locale (default: English)
+        locale = QSettings().value('locale/userLocale', 'en')[0:2]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
             'LegendView_{}.qm'.format(locale))
 
+        # Try to load Qt translator (QGIS標準)
+        self.translator = None
         if os.path.exists(locale_path):
             self.translator = QTranslator()
-            self.translator.load(locale_path)
-            QCoreApplication.installTranslator(self.translator)
+            if self.translator.load(locale_path):
+                QCoreApplication.installTranslator(self.translator)
+            else:
+                self.translator = None
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&凡例表示')
-        # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'LegendView')
-        self.toolbar.setObjectName(u'LegendView')
-
+        self.menu = self.tr(u'&Legend View')  # Default to English, will be translated
+        # No custom toolbar - using standard QGIS plugin toolbar
+        
         #print "** INITIALIZING LegendView"
 
         self.pluginIsActive = False
@@ -86,17 +106,7 @@ class LegendView:
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
-        """Get the translation for a string using Qt translation API.
-
-        We implement this ourselves since we do not inherit QObject.
-
-        :param message: String for translation.
-        :type message: str, QString
-
-        :returns: Translated version of message.
-        :rtype: QString
-        """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+        """QGIS/Qt標準の翻訳APIのみ"""
         return QCoreApplication.translate('LegendView', message)
 
 
@@ -150,8 +160,35 @@ class LegendView:
         :rtype: QAction
         """
 
-        icon = QIcon(icon_path)
-        action = QAction(icon, text, parent)
+        # Create icon - simple and reliable approach
+        icon = QIcon()
+        
+        # Try multiple approaches in order of reliability
+        import os
+        
+        # Method 1: File system path (most reliable)
+        if icon_path.startswith(':/'):
+            file_name = os.path.basename(icon_path)
+            file_path = os.path.join(os.path.dirname(__file__), file_name)
+        else:
+            file_path = icon_path
+            
+        if os.path.exists(file_path):
+            icon = QIcon(file_path)
+        
+        # Method 2: Resource path (if file system failed)
+        if icon.isNull() and icon_path.startswith(':/'):
+            icon = QIcon(icon_path)
+        
+        # Method 3: Create simple fallback icon if both failed
+        if icon.isNull():
+            icon = self.create_fallback_icon()
+        
+        # Qt6ではparent=NoneでQAction生成（ツールバー表示対策）
+        if is_qt6():
+            action = QAction(icon, text)
+        else:
+            action = QAction(icon, text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
 
@@ -162,7 +199,8 @@ class LegendView:
             action.setWhatsThis(whats_this)
 
         if add_to_toolbar:
-            self.toolbar.addAction(action)
+            # Add to the standard QGIS plugin toolbar
+            self.iface.addToolBarIcon(action)
 
         if add_to_menu:
             self.iface.addPluginToMenu(
@@ -176,11 +214,12 @@ class LegendView:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+        
         icon_path = ':/plugins/legend_view/icon.png'
+        
         self.add_action(
             icon_path,
-            text=self.tr(u'凡例'),
+            text=self.tr(u'Legend'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
@@ -212,11 +251,10 @@ class LegendView:
 
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&凡例表示'),
+                self.tr(u'&Legend View'),  # Default to English, will be translated
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
-        del self.toolbar
+        # No custom toolbar to remove - using standard plugin toolbar
 
     #--------------------------------------------------------------------------
 
@@ -234,7 +272,7 @@ class LegendView:
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = LegendViewDockWidget(self.iface)
-                self.dockwidget.setAttribute(Qt.WA_DeleteOnClose)
+                self.dockwidget.setAttribute(WA_DeleteOnClose)
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
@@ -265,7 +303,7 @@ class LegendView:
         is_floating = s.value("LegendView/isfloating", "0") == "1"
 
         if is_floating:
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.iface.addDockWidget(RightDockWidgetArea, self.dockwidget)
             geometry = s.value("LegendView/geometry", "")
             if not geometry.isEmpty():
                 self.dockwidget.restoreGeometry(bytearray(geometry))
@@ -274,7 +312,7 @@ class LegendView:
         else:
             self.dockwidget.setFloating(False)
             if not self.iface.mainWindow().restoreDockWidget(self.dockwidget):
-                self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+                self.iface.addDockWidget(RightDockWidgetArea, self.dockwidget)
 
         self.dockwidget.show()
 
@@ -291,4 +329,42 @@ class LegendView:
             value = ecs.variable(name)
             if value == "1":
                 self.run()
+
+    def create_fallback_icon(self):
+        """Create a simple fallback icon when other methods fail"""
+        try:
+            # Import Qt modules based on version
+            if is_qt5():
+                from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen
+                from PyQt5.QtCore import Qt
+            else:
+                from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen
+                from PyQt6.QtCore import Qt
             
+            # Create a simple 24x24 icon
+            pixmap = QPixmap(24, 24)
+            pixmap.fill(Qt.transparent)
+            
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            # Draw a simple legend-like icon
+            painter.setPen(QPen(QColor(50, 50, 150), 2))
+            painter.setBrush(QColor(200, 220, 255))
+            painter.drawRect(2, 2, 20, 20)
+            
+            # Add some lines to represent legend entries
+            painter.setPen(QPen(QColor(100, 100, 100), 1))
+            painter.drawLine(5, 8, 19, 8)
+            painter.drawLine(5, 12, 19, 12)
+            painter.drawLine(5, 16, 19, 16)
+            
+            painter.end()
+            
+            return QIcon(pixmap)
+        except:
+            # Return empty icon if even fallback fails
+            return QIcon()
+
+
+

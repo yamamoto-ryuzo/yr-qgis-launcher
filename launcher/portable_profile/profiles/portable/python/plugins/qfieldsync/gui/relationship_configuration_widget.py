@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  RelationshipConfigurationWidget
@@ -29,7 +28,7 @@ from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem
 
 class RelationshipConfigurationTableWidget(QTableWidget):
     def __init__(self):
-        super(RelationshipConfigurationTableWidget, self).__init__()
+        super().__init__()
 
         self.setColumnCount(4)
         self.setHorizontalHeaderLabels(
@@ -45,7 +44,7 @@ class RelationshipConfigurationTableWidget(QTableWidget):
         self.resizeColumnsToContents()
         self.setMinimumHeight(100)
 
-    def addLayerFields(self, layer_source):
+    def add_layer_fields(self, layer_source):
         layer = layer_source.layer
 
         if layer.type() != QgsMapLayer.VectorLayer:
@@ -57,14 +56,14 @@ class RelationshipConfigurationTableWidget(QTableWidget):
             row = self.rowCount()
             self.insertRow(row)
             layer_name_item = QTableWidgetItem(layer.name())
-            layer_name_item.setData(Qt.UserRole, layer_source)
-            layer_name_item.setFlags(Qt.ItemIsEnabled)
+            layer_name_item.setData(Qt.ItemDataRole.UserRole, layer_source)
+            layer_name_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, 0, layer_name_item)
             relation_id_item = QTableWidgetItem(relation.id())
-            relation_id_item.setFlags(Qt.ItemIsEnabled)
+            relation_id_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, 1, relation_id_item)
             relation_name_item = QTableWidgetItem(relation.name())
-            relation_name_item.setFlags(Qt.ItemIsEnabled)
+            relation_name_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(row, 2, relation_name_item)
             spin_item = QgsSpinBox()
             spin_item.setMinimum(0)
@@ -78,12 +77,12 @@ class RelationshipConfigurationTableWidget(QTableWidget):
 
         self.resizeColumnsToContents()
 
-    def setLayerColumnHidden(self, is_hidden):
+    def set_layer_column_hidden(self, is_hidden):
         self.setColumnHidden(0, is_hidden)
 
-    def syncLayerSourceValues(self, should_apply=False):
+    def sync_layer_source_values(self, should_apply=False):
         for i in range(self.rowCount()):
-            layer_source = self.item(i, 0).data(Qt.UserRole)
+            layer_source = self.item(i, 0).data(Qt.ItemDataRole.UserRole)
             relation_id = self.item(i, 1).text()
             relationship_maximum_visible = self.cellWidget(i, 3).value()
             layer_source.set_relationship_maximum_visible(

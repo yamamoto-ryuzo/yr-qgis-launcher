@@ -1,7 +1,5 @@
-SOURCES += quick_dem_for_jp.py \
-            progress_dialog.py \
+SOURCES += ./processing_provider/quick_dem_for_jp_algorithm.py \
+            ./processing_provider/quick_dem_for_jp_provider.py \
+            ./plugin.py
 
-FORMS += quick_dem_for_jp_dialog_base.ui \
-            progress_dialog.ui
-
-TRANSLATIONS = ./i18n/QuickDEMforJP_en.ts ./i18n/QuickDEMforJP_ja.ts
+TRANSLATIONS = ./i18n/QuickDEMforJP_ja.ts

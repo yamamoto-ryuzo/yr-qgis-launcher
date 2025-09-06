@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  CloudProjectsDialog
@@ -67,10 +66,10 @@ from qgis.PyQt.QtWidgets import (
 from qgis.PyQt.uic import loadUiType
 from qgis.utils import iface
 
-from qfieldsync.core import Preferences
-from qfieldsync.core.cloud_api import CloudException, CloudNetworkAccessManager
+from qfieldsync.core.cloud_api import CloudNetworkAccessManager, QfcError
 from qfieldsync.core.cloud_project import CloudProject, ProjectFile, ProjectFileCheckout
 from qfieldsync.core.cloud_transferrer import FileTransfer
+from qfieldsync.core.preferences import Preferences
 from qfieldsync.gui.cloud_create_project_widget import CloudCreateProjectWidget
 from qfieldsync.gui.cloud_login_dialog import CloudLoginDialog
 from qfieldsync.gui.cloud_transfer_dialog import CloudTransferDialog
@@ -83,7 +82,7 @@ CloudProjectsDialogUi, _ = loadUiType(
 )
 
 
-class WindowsIconFixWorkDir(object):
+class WindowsIconFixWorkDir:
     """Workaround for older QT (M$ QGIS <3.16.5) to make the custom icons load with relative path."""
 
     def __init__(self, path):
@@ -100,19 +99,19 @@ class WindowsIconFixWorkDir(object):
 class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
     projects_refreshed = pyqtSignal()
 
-    def __init__(
+    def __init__(  # noqa: PLR0915
         self,
         network_manager: CloudNetworkAccessManager,
-        parent: QWidget = None,
-        project: CloudProject = None,
+        parent: Optional[QWidget] = None,
+        project: Optional[CloudProject] = None,
     ) -> None:
         """Constructor."""
-        super(CloudProjectsDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         with WindowsIconFixWorkDir(Path(__file__).parent.parent.joinpath("ui")):
             self.setupUi(self)
 
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.preferences = Preferences()
         self.network_manager = network_manager
         self._current_cloud_project_id = project.id if project else None
@@ -135,12 +134,14 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
             )
         )
 
-        # TODO show when public projects are ready
+        # TODO @suricactus: show when public projects API is ready
         self.projectsType.hide()
         self.projectsType.addItem(self.tr("My projects"))
         self.projectsType.addItem(self.tr("Community"))
         self.projectsType.setCurrentIndex(0)
         self.projectsType.currentIndexChanged.connect(lambda: self.show_projects())
+
+        self.projectsSearch.textChanged.connect(self.filter_projects_search)
 
         self.projectsTable.setColumnWidth(0, int(self.projectsTable.width() * 0.75))
         self.projectsTable.setColumnWidth(1, int(self.projectsTable.width() * 0.2))
@@ -206,10 +207,10 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
             lambda: self.on_projects_table_cell_double_clicked()
         )
 
-        self.buttonBox.button(QDialogButtonBox.Close).clicked.connect(
+        self.buttonBox.button(QDialogButtonBox.StandardButton.Close).clicked.connect(
             lambda: self.on_button_box_clicked()
         )
-        self.buttonBox.button(QDialogButtonBox.Help).clicked.connect(
+        self.buttonBox.button(QDialogButtonBox.StandardButton.Help).clicked.connect(
             lambda: QDesktopServices.openUrl(QUrl("https://docs.qfield.org/"))
         )
         self.avatarButton.clicked.connect(lambda: self.on_logout_button_clicked())
@@ -222,7 +223,9 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         )
         self.localDirButton.clicked.connect(lambda: self.on_local_dir_button_clicked())
         self.localDirButton.setMenu(QMenu())
-        self.localDirButton.setPopupMode(QToolButton.MenuButtonPopup)
+        self.localDirButton.setPopupMode(
+            QToolButton.ToolButtonPopupMode.MenuButtonPopup
+        )
         self.localDirButton.menu().addAction(self.use_current_project_directory_action)
         self.localDirOpenButton.clicked.connect(
             lambda: self.on_local_dir_open_button_clicked()
@@ -259,16 +262,16 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         )
 
         self.projectFilesTree.header().setSectionResizeMode(
-            0, QHeaderView.ResizeToContents
+            0, QHeaderView.ResizeMode.ResizeToContents
         )
         self.projectFilesTree.header().setSectionResizeMode(
-            1, QHeaderView.ResizeToContents
+            1, QHeaderView.ResizeMode.ResizeToContents
         )
         self.projectFilesTree.header().setSectionResizeMode(
-            2, QHeaderView.ResizeToContents
+            2, QHeaderView.ResizeMode.ResizeToContents
         )
         self.projectFilesTree.header().setSectionResizeMode(
-            3, QHeaderView.ResizeToContents
+            3, QHeaderView.ResizeMode.ResizeToContents
         )
 
         self.update_ui_state()
@@ -292,7 +295,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         self.update_project_table_selection()
         self.update_ui_state()
 
-    def set_feedback(self, msg, color: str = Qt.red):
+    def set_feedback(self, msg, color: str = Qt.GlobalColor.red):
         color_hex = QColor(color).name()
         self.feedbackLabel.setStyleSheet(f"QLabel {{ color: {color_hex}; }}")
 
@@ -311,7 +314,8 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
     def on_projects_cached_projects_started(self) -> None:
         self.projectsStack.setEnabled(False)
         self.set_feedback(
-            self.tr("Loading projects list…"), self.palette().color(QPalette.WindowText)
+            self.tr("Loading projects list…"),
+            self.palette().color(QPalette.ColorRole.WindowText),
         )
 
     def on_projects_cached_projects_error(self, error: str) -> None:
@@ -323,7 +327,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         self.projects_refreshed.emit()
         self.show_projects()
 
-    def on_projects_cached_project_files_started(self, project_id: str) -> None:
+    def on_projects_cached_project_files_started(self, _project_id: str) -> None:
         self.projectFilesTab.setEnabled(False)
         self.set_feedback(None)
 
@@ -340,8 +344,12 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         )
 
     def on_project_files_toggle_expand_button_clicked(self) -> None:
-        should_expand = not self.projectFilesTree.topLevelItem(0).data(1, Qt.UserRole)
-        self.projectFilesTree.topLevelItem(0).setData(1, Qt.UserRole, should_expand)
+        should_expand = not self.projectFilesTree.topLevelItem(0).data(
+            1, Qt.ItemDataRole.UserRole
+        )
+        self.projectFilesTree.topLevelItem(0).setData(
+            1, Qt.ItemDataRole.UserRole, should_expand
+        )
 
         for idx in range(self.projectFilesTree.topLevelItemCount()):
             self.expand_state(self.projectFilesTree.topLevelItem(idx), should_expand)
@@ -384,8 +392,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
             for part_idx, part in enumerate(parts):
                 if len(stack) > part_idx and stack[part_idx][0] == part:
                     continue
-                else:
-                    stack = stack[0:part_idx]
+                stack = stack[0:part_idx]
 
                 item = QTreeWidgetItem()
                 item.setText(0, part)
@@ -400,24 +407,24 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                 # the length of the stack and the parts is equal for file entries
                 if len(stack) == len(parts):
                     item.setToolTip(0, project_file.name)
-                    item.setData(0, Qt.UserRole, project_file)
+                    item.setData(0, Qt.ItemDataRole.UserRole, project_file)
 
                     item.setText(1, str(project_file.size))
-                    item.setTextAlignment(1, Qt.AlignRight)
+                    item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight)
                     item.setText(2, project_file.created_at)
 
                     versions_count = len(project_file.versions)
                     for version_idx, version_obj in enumerate(project_file.versions):
                         version_item = QTreeWidgetItem()
 
-                        version_item.setData(0, Qt.UserRole, version_obj)
-                        # TODO remove default value `versions_count - version_idx`, the "display" key is standard for newer QFC releases
+                        version_item.setData(0, Qt.ItemDataRole.UserRole, version_obj)
+                        # TODO @suricactus: remove default value `versions_count - version_idx`, the "display" key is standard for newer QFC releases
                         version_display = version_obj.get(
                             "display", versions_count - version_idx
                         )
                         version_item.setText(0, "Version {}".format(version_display))
                         version_item.setText(1, str(version_obj["size"]))
-                        version_item.setTextAlignment(1, Qt.AlignRight)
+                        version_item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight)
                         version_item.setText(2, version_obj["last_modified"])
 
                         save_as_btn = QPushButton()
@@ -437,7 +444,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                         )
                         save_as_widget = QWidget()
                         save_as_layout = QHBoxLayout()
-                        save_as_layout.setAlignment(Qt.AlignCenter)
+                        save_as_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
                         save_as_layout.setContentsMargins(0, 0, 0, 0)
                         save_as_layout.addWidget(save_as_btn)
                         save_as_widget.setLayout(save_as_layout)
@@ -450,7 +457,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                 else:
                     item.setExpanded(True)
 
-                    # TODO make a fancy button that marks all the child items as checked or not
+                    # TODO @suricactus: make a fancy button that marks all the child items as checked or not
         # NOTE END algorithmic part
 
     @closure
@@ -484,7 +491,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         transfer = FileTransfer(
             self.network_manager,
             self.current_cloud_project,
-            FileTransfer.Type.DOWNLOAD,
+            FileTransfer.TransferType.DOWNLOAD,
             project_file,
             Path(version_dest_filename),
             project_file.versions[version_idx]["version_id"],
@@ -548,6 +555,20 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
     def on_refresh_button_clicked(self) -> None:
         self.network_manager.projects_cache.refresh()
 
+    def filter_projects_search(self) -> None:
+        filter_text = self.projectsSearch.text().lower()
+        for row in range(self.projectsTable.rowCount()):
+            if filter_text:
+                item = self.projectsTable.item(row, 0)
+                cloud_project = item.data(Qt.UserRole)
+                cloud_project_is_visible = (
+                    filter_text in cloud_project.name.lower()
+                    or filter_text in cloud_project.owner.lower()
+                )
+                self.projectsTable.setRowHidden(row, not cloud_project_is_visible)
+            else:
+                self.projectsTable.setRowHidden(row, False)
+
     def show_projects(self) -> None:
         self.set_feedback(None)
 
@@ -563,7 +584,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                 self.tr(
                     "You don't have any projects, create your first one by clicking the button in the bottom bar."
                 ),
-                self.palette().color(QPalette.WindowText),
+                self.palette().color(QPalette.ColorRole.WindowText),
             )
             return
 
@@ -594,10 +615,10 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                 raise NotImplementedError()
 
             pm = QPixmap(40, 20)
-            pm.fill(Qt.transparent)
+            pm.fill(Qt.GlobalColor.transparent)
             painter = QPainter(pm)
-            painter.setPen(QPen(color, 8, Qt.SolidLine))
-            painter.setBrush(QBrush(color, Qt.SolidPattern))
+            painter.setPen(QPen(color, 8, Qt.PenStyle.SolidLine))
+            painter.setBrush(QBrush(color, Qt.BrushStyle.SolidPattern))
             painter.drawEllipse(30, 10, 5, 5)
             icon = QIcon(
                 str(
@@ -611,10 +632,10 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
             painter.drawPixmap(0, 0, icon.pixmap(pm.size()))
             del painter
 
-            item.setData(Qt.UserRole, cloud_project)
-            item.setData(Qt.EditRole, cloud_project.name)
+            item.setData(Qt.ItemDataRole.UserRole, cloud_project)
+            item.setData(Qt.ItemDataRole.EditRole, cloud_project.name)
             item.setData(
-                Qt.DecorationRole,
+                Qt.ItemDataRole.DecorationRole,
                 pm,
             )
 
@@ -634,9 +655,10 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
             self.projectsTable.setItem(count, 0, item)
             self.projectsTable.setItem(count, 1, QTableWidgetItem(cloud_project.owner))
 
-        self.projectsTable.sortByColumn(1, Qt.AscendingOrder)
-        self.projectsTable.sortByColumn(0, Qt.AscendingOrder)
+        self.projectsTable.sortByColumn(1, Qt.SortOrder.AscendingOrder)
+        self.projectsTable.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.projectsTable.setSortingEnabled(True)
+        self.filter_projects_search()
         self.update_project_table_selection()
 
         if self._suggest_upload_files:
@@ -688,7 +710,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         )
         reply.finished.connect(lambda: self.launch())
 
-    def select_local_dir(self) -> Optional[str]:
+    def select_local_dir(self) -> Optional[str]:  # noqa: PLR0912
         """
         ```
             if there is saved location for this project id #
@@ -712,7 +734,6 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
             ask should that project be opened
         ```
         """
-
         local_dir = None
         initial_path = (
             self.localDirLineEdit.text()
@@ -731,7 +752,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                 )
 
                 if local_dir == "":
-                    return
+                    return None
 
                 feedback, feedback_msg = local_dir_feedback(
                     local_dir, no_project_status=LocalDirFeedback.Warning
@@ -763,7 +784,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                 )
 
                 if local_dir == "":
-                    return
+                    return None
 
                 # when the dir is empty, all is good. But if not there are some file, we need to ask the user to confirm what to do
                 if list(Path(local_dir).iterdir()):
@@ -838,7 +859,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
 
         try:
             self.network_manager.handle_response(reply, False)
-        except CloudException as err:
+        except QfcError as err:
             self.set_feedback(self.tr("Project delete failed: {}").format(str(err)))
             return
 
@@ -877,17 +898,17 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         )
         self.createdAtLabelValue.setText(
             QDateTime.fromString(
-                self.current_cloud_project.created_at, Qt.ISODateWithMs
+                self.current_cloud_project.created_at, Qt.DateFormat.ISODateWithMs
             ).toString()
         )
         self.updatedAtLabelValue.setText(
             QDateTime.fromString(
-                self.current_cloud_project.updated_at, Qt.ISODateWithMs
+                self.current_cloud_project.updated_at, Qt.DateFormat.ISODateWithMs
             ).toString()
         )
         self.lastSyncedAtLabelValue.setText(
             QDateTime.fromString(
-                self.current_cloud_project.updated_at, Qt.ISODateWithMs
+                self.current_cloud_project.updated_at, Qt.DateFormat.ISODateWithMs
             ).toString()
         )
 
@@ -973,7 +994,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
 
     def on_create_project_error(self, message) -> None:
         self.set_feedback(message)
-        iface.messageBar().pushMessage(message, Qgis.Critical, 0)
+        iface.messageBar().pushMessage(message, Qgis.MessageLevel.Critical, 0)
 
     def on_create_project_canceled(self) -> None:
         self.projectsStack.setCurrentWidget(self.projectsListPage)
@@ -1028,7 +1049,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
 
         for row_idx in range(self.projectsTable.rowCount()):
             cloud_project: CloudProject = self.projectsTable.item(row_idx, 0).data(
-                Qt.UserRole
+                Qt.ItemDataRole.UserRole
             )
             is_currently_open_project = (
                 cloud_project
@@ -1047,11 +1068,13 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
                 index = self.projectsTable.model().index(row_idx, 0)
                 self.projectsTable.setCurrentIndex(index)
                 self.projectsTable.selectionModel().select(
-                    index, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows
+                    index,
+                    QItemSelectionModel.SelectionFlag.ClearAndSelect
+                    | QItemSelectionModel.SelectionFlag.Rows,
                 )
                 self.projectsTable.scrollToItem(
                     self.projectsTable.item(row_idx, 0),
-                    QAbstractItemView.EnsureVisible,
+                    QAbstractItemView.ScrollHint.EnsureVisible,
                 )
 
             self.update_project_buttons()
@@ -1061,7 +1084,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
 
         try:
             self.network_manager.json_object(reply)
-        except CloudException as err:
+        except QfcError as err:
             self.set_feedback("Project update failed: {}".format(str(err)))
             return
 
@@ -1074,7 +1097,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
         if self.projectsTable.selectionModel().hasSelection():
             row_idx = self.projectsTable.currentRow()
             self.current_cloud_project = self.projectsTable.item(row_idx, 0).data(
-                Qt.UserRole
+                Qt.ItemDataRole.UserRole
             )
 
         self.update_project_buttons()
@@ -1087,7 +1110,7 @@ class CloudProjectsDialog(QDialog, CloudProjectsDialogUi):
             has_selection = True
             row_idx = self.projectsTable.currentRow()
             self.current_cloud_project = self.projectsTable.item(row_idx, 0).data(
-                Qt.UserRole
+                Qt.ItemDataRole.UserRole
             )
             assert self.current_cloud_project
 

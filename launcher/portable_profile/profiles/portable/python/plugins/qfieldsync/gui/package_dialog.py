@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  QFieldSyncDialog
@@ -28,10 +27,10 @@ from libqfieldsync.layer import LayerSource
 from libqfieldsync.offline_converter import (
     ExportType,
     OfflineConverter,
-    PackagingCanceledException,
+    PackagingCanceledError,
 )
 
-# TODO this try/catch was added due to module structure changes in QFS 4.8.0. Remove this as enough time has passed since March 2024.
+# TODO @suricactus: this try/catch was added due to module structure changes in QFS 4.8.0. Remove this as enough time has passed since March 2024.
 try:
     from libqfieldsync.offliners import QgisCoreOffliner
 except ModuleNotFoundError:
@@ -58,7 +57,6 @@ from qgis.PyQt.uic import loadUiType
 from qfieldsync.core.preferences import Preferences
 from qfieldsync.gui.checker_feedback_table import CheckerFeedbackTable
 from qfieldsync.gui.dirs_to_copy_widget import DirsToCopyWidget
-from qfieldsync.gui.project_configuration_dialog import ProjectConfigurationDialog
 
 MAX_LENGTH_CHARS_FILEPATH = 200
 
@@ -72,7 +70,7 @@ class PackageDialog(QDialog, DialogUi):
 
     def __init__(self, iface, project, offline_editing, parent=None):
         """Constructor."""
-        super(PackageDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.setupUi(self)
 
         self.iface = iface
@@ -81,21 +79,23 @@ class PackageDialog(QDialog, DialogUi):
         self.qfield_preferences = Preferences()
         self.dirsToCopyWidget = DirsToCopyWidget()
         self.__project_configuration = ProjectConfiguration(self.project)
-        self.button_box.button(QDialogButtonBox.Save).setText(self.tr("Create"))
-        self.button_box.button(QDialogButtonBox.Save).clicked.connect(
+        self.button_box.button(QDialogButtonBox.StandardButton.Save).setText(
+            self.tr("Create")
+        )
+        self.button_box.button(QDialogButtonBox.StandardButton.Save).clicked.connect(
             self.package_project
         )
-        self.button_box.button(QDialogButtonBox.Reset).setText(
+        self.button_box.button(QDialogButtonBox.StandardButton.Reset).setText(
             self.tr("Configure current project...")
         )
-        self.button_box.button(QDialogButtonBox.Reset).setIcon(
+        self.button_box.button(QDialogButtonBox.StandardButton.Reset).setIcon(
             QIcon(
                 os.path.join(
                     os.path.dirname(__file__), "../resources/project_properties.svg"
                 )
             )
         )
-        self.button_box.button(QDialogButtonBox.Reset).clicked.connect(
+        self.button_box.button(QDialogButtonBox.StandardButton.Reset).clicked.connect(
             self.show_settings
         )
 
@@ -208,7 +208,7 @@ class PackageDialog(QDialog, DialogUi):
         )
 
     def package_project(self):
-        self.button_box.button(QDialogButtonBox.Save).setEnabled(False)
+        self.button_box.button(QDialogButtonBox.StandardButton.Save).setEnabled(False)
 
         packaged_project_file = Path(self.packagedProjectFileWidget.filePath())
         area_of_interest = (
@@ -247,15 +247,15 @@ class PackageDialog(QDialog, DialogUi):
         )
 
         try:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             self._offline_convertor.convert()
             self.do_post_offline_convert_action(True)
-        except PackagingCanceledException:
+        except PackagingCanceledError:
             # packaging was canceled by user, we do nothing.
             return
-        except Exception as err:
+        except Exception:
             self.do_post_offline_convert_action(False)
-            raise err
+            raise
         finally:
             QApplication.restoreOverrideCursor()
             self._offline_convertor = None
@@ -290,44 +290,31 @@ class PackageDialog(QDialog, DialogUi):
         self.iface.messageBar().pushMessage(result_message, status, 0)
 
     def update_info_visibility(self):
-        """
-        Show the info label if there are unconfigured layers
-        """
-        localizedDataPathLayers = []
+        """Show the info label if there are unconfigured layers"""
+        localized_data_path_layers = []
         for layer in list(self.project.mapLayers().values()):
             layer_source = LayerSource(layer)
 
             if layer_source.is_localized_path:
-                localizedDataPathLayers.append(
-                    "- {} ({})".format(layer.name(), layer_source.filename)
-                )
+                localized_data_path_layers.append("- {}".format(layer.name()))
 
-        if localizedDataPathLayers:
-            if len(localizedDataPathLayers) == 1:
-                self.infoLocalizedLayersLabel.setText(
-                    self.tr("The layer stored in a localized data path is:\n{}").format(
-                        "\n".join(localizedDataPathLayers)
-                    )
-                )
-            else:
-                self.infoLocalizedLayersLabel.setText(
-                    self.tr(
-                        "The layers stored in a localized data path are:\n{}"
-                    ).format("\n".join(localizedDataPathLayers))
-                )
+        if localized_data_path_layers:
+            self.infoLocalizedLayersLabel.setText(
+                self.tr(
+                    "The current project relies on %n shared dataset(s), make sure to copy them into the shared datasets path of devices running QField. The layer(s) stored in a shared dataset(s) are:\n{}",
+                    "",
+                    len(localized_data_path_layers),
+                ).format("\n".join(localized_data_path_layers))
+            )
+
             self.infoLocalizedLayersLabel.setVisible(True)
-            self.infoLocalizedPresentLabel.setVisible(True)
         else:
             self.infoLocalizedLayersLabel.setVisible(False)
-            self.infoLocalizedPresentLabel.setVisible(False)
-        self.infoGroupBox.setVisible(len(localizedDataPathLayers) > 0)
+        self.infoGroupBox.setVisible(len(localized_data_path_layers) > 0)
 
     def show_settings(self):
-        if Qgis.QGIS_VERSION_INT >= 31500:
-            self.iface.showProjectPropertiesDialog("QField")
-        else:
-            dlg = ProjectConfigurationDialog(self.iface.mainWindow())
-            dlg.exec_()
+        self.iface.showProjectPropertiesDialog("QField")
+
         self.update_info_visibility()
 
     def update_total(self, current, layer_count, message):

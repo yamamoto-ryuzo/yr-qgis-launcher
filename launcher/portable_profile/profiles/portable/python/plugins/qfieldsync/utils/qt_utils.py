@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 /***************************************************************************
  QFieldSync
@@ -31,14 +29,14 @@ from qgis.PyQt.QtWidgets import QTreeWidgetItem
 from .file_utils import DirectoryTreeDict, DirectoryTreeType
 
 
-def selectFolder(line_edit_widget):
+def select_folder(line_edit_widget):
     line_edit_widget.setText(
         QtWidgets.QFileDialog.getExistingDirectory(directory=line_edit_widget.text())
     )
 
 
 def make_folder_selector(widget):
-    return partial(selectFolder, line_edit_widget=widget)
+    return partial(select_folder, line_edit_widget=widget)
 
 
 def make_icon(icon_name):
@@ -56,12 +54,11 @@ def rounded_pixmap(img_path: str, diameter: int) -> QPixmap:
     size = QSize(height, width)
 
     target_pixmap = QPixmap(size)
-    target_pixmap.fill(Qt.transparent)
+    target_pixmap.fill(Qt.GlobalColor.transparent)
 
     painter = QPainter(target_pixmap)
-    painter.setRenderHint(QPainter.Antialiasing, True)
-    painter.setRenderHint(QPainter.HighQualityAntialiasing, True)
-    painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
 
     path = QPainterPath()
     path.addRoundedRect(
@@ -85,8 +82,8 @@ def rounded_pixmap(img_path: str, diameter: int) -> QPixmap:
         pixmap = pixmap.scaled(
             width,
             height,
-            Qt.KeepAspectRatioByExpanding,
-            Qt.SmoothTransformation,
+            Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+            Qt.TransformationMode.SmoothTransformation,
         )
 
         painter.drawPixmap(0, 0, pixmap)

@@ -523,19 +523,17 @@ document.addEventListener('DOMContentLoaded', function() {
         topLeftContainerDiv.appendChild(zoomControl);
     }
     //geolocate
-    var geolocateControl = document.getElementsByClassName('geolocate')[0];
-    if (geolocateControl) {
+    if (typeof geolocateControl !== 'undefined') {
         topLeftContainerDiv.appendChild(geolocateControl);
     }
     //measure
-    var measureControl = document.getElementsByClassName('measure-control')[0];
-    if (measureControl) {
+    if (typeof measureControl !== 'undefined') {
         topLeftContainerDiv.appendChild(measureControl);
     }
     //geocoder
-    var geocoderControl = document.getElementsByClassName('ol-geocoder')[0];
-    if (geocoderControl) {
-        topLeftContainerDiv.appendChild(geocoderControl);
+    var searchbar = document.getElementsByClassName('photon-geocoder-autocomplete ol-unselectable ol-control')[0];
+    if (searchbar) {
+        topLeftContainerDiv.appendChild(searchbar);
     }
     //search layer
     var searchLayerControl = document.getElementsByClassName('search-layer')[0];
