@@ -89,9 +89,9 @@
 
 ---
 
-## ローカル同期＆ランチャー起動バッチ（local-launchar.bat）
+## ローカル同期＆ランチャー起動バッチ（local-launcher.bat）
 
-`local-launchar.bat`は、QGIS/QField環境をローカルPCに同期し、必要な場合のみQField*/QGIS*フォルダをバージョン判定して同期、さらに`ProjectFile.exe`を自動起動するバッチです。
+`local-launcher.bat`は、QGIS/QField環境をローカルPCに同期し、必要な場合のみQField*/QGIS*フォルダをバージョン判定して同期、さらに`ProjectFile.exe`を自動起動するバッチです。
 これにより、BOXなどのクラウドストレージと高速に同期した閲覧専用の動作環境を構築できます。
 
 ### 主な動作
@@ -125,7 +125,7 @@ EXCLUDE_DIRS=secret-folder private-data
 ### 使い方
 
 1. `local-launcher\qgislocalsync.config` を編集し、同期元・同期先・バージョンを指定
-2. `local-launchar.bat` を実行
+2. `local-launcher.bat` を実行
 
 ---
 
@@ -135,6 +135,16 @@ EXCLUDE_DIRS=secret-folder private-data
 - **日本語を含むパスでは動作しません。必ず英数字のみのパスに展開してください。**
 
 ---
+
+## 補足・運用上の注意 (local-launcher.bat)
+
+- **ファイル名とディレクトリ名の綴り**: バッチファイル名を `local-launcher.bat` に統一しました。設定ディレクトリ `local-launcher` と合わせて運用してください。
+- **設定ファイルのパース**: `qgislocalsync.config` の読み取りは `key=value` 形式を想定しています。値に `=` を含む場合やコメント行・空行がある場合に誤動作することがあるため、`tokens=1* delims==` で値全体を扱うようにすることを推奨します。
+- **遅延展開の注意**: バッチ内で `enabledelayedexpansion` を有効にした上で `call set` による二段展開を行っています。設定値に `!` や `%` を含めると展開の副作用が起きる可能性があるため、設定ファイルでは特殊文字の使用を避けてください。
+- **除外フォルダ指定 (`EXCLUDE_DIRS`)**: 設定ではスペース区切りのリストを想定していますが、`robocopy` の `/XD` に渡す際は引数の組み立て方に注意が必要です。空の場合は `/XD` に何も渡さないようにするか、個別に `for` で展開して呼び出すのが安全です。
+- **同期先の存在チェック**: `pushd "%SYNC_DST%"` を使う前に `SYNC_DST` が設定されているか、またディレクトリが存在するかをチェックし、必要なら `mkdir` しておく方が堅牢です。
+- **robocopy のワイルドカード除外**: `/XD QField* QGIS*` のようなワイルドカード除外は robocopy のバージョンや環境によって振る舞いが変わることがあります。QField/QGIS フォルダを個別同期する仕組みと合わせて、除外が正しく行われているか確認してください。
+
 
 ## 免責事項
 
