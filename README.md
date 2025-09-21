@@ -96,11 +96,20 @@
 
 ### 主な動作
 
-1. `local-launcher\qgislocalsync.config` から同期元・同期先パス、QField/QGISバージョン情報を取得
-2. 同期先の `local-launcher\qgislocalsync.config` からローカルのバージョン情報を取得
-3. QField*/QGIS*以外のフォルダは常に同期
-4. QField*/QGIS*フォルダはバージョンが異なる場合のみ同期
-5. 同期後、同期先で `ProjectFile.exe` を自動起動
+- **トップレベルを同期（`QField*`/`QGIS*` は除外）**
+  - 説明: `robocopy` 等で `SYNC_SRC` から `SYNC_DST` へトップレベルファイルを同期する。`/XD QField* QGIS*` の除外を想定。
+
+- **ユーザープロファイルの更新**
+  - 説明: `portable.ver` の文字列比較で差分があれば `portable_profile` を `robocopy` で同期し、最後に `portable.ver` を上書きする。
+
+- **`QField*` の更新**
+  - 説明: `qgislocalsync.config` の `QFIELD_VERSION` とローカルの `LOCAL_QFIELD_VERSION` を文字列比較し、異なれば該当 `QField*` フォルダを同期する。
+
+- **`QGIS*` の更新**
+  - 説明: `qgislocalsync.config` の `QGIS_VERSION` とローカルの `LOCAL_QGIS_VERSION` を文字列比較し、異なれば該当 `QGIS*` フォルダを同期する。
+
+- **`ProjectFile.exe` を同期先で自動起動**
+  - 説明: 同期後、`SYNC_DST` に配置された `ProjectFile.exe` を自動的に起動する処理を実行する（`start` / `pushd` などのバッチ内処理）。
 
 ### 設定ファイル例（local-launcher\qgislocalsync.config）
 
